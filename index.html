@@ -1,0 +1,2888 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>LIFELOG — Your Life. Your Progress.</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #09090b;
+      --bg-secondary: #121216;
+      --bg-card: #18181d;
+      --bg-elevated: #222229;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --text-primary: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.14);
+    }
+
+    html[data-theme="oled"] {
+      --bg-primary: #000000;
+      --bg-secondary: #08080a;
+      --bg-card: #101014;
+      --bg-elevated: #1a1a20;
+    }
+
+    html[data-theme="light"] {
+      --bg-primary: #f5f5f7;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-elevated: #f0f0f3;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.16);
+      --text-primary: #18181b;
+      --text-secondary: #52525b;
+      --text-muted: #71717a;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.1);
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Inter", sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+    }
+
+    .card-elevated {
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+    }
+
+    .input-base {
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 15px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .input-base:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-tap {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: transform 0.1s ease, opacity 0.15s ease, background-color 0.15s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .btn-tap:active {
+      transform: scale(0.97);
+    }
+
+    .nav-glass {
+      background-color: rgba(18, 18, 22, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    html[data-theme="light"] .nav-glass {
+      background-color: rgba(255, 255, 255, 0.88);
+    }
+
+    .header-glass {
+      background-color: rgba(9, 9, 11, 0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    html[data-theme="light"] .header-glass {
+      background-color: rgba(245, 245, 247, 0.85);
+    }
+
+    .pb-safe {
+      padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .bottom-nav-safe {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 999px;
+    }
+
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-blue-500/30">
+
+  <!-- Top Header -->
+  <header class="header-glass sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <span class="font-semibold tracking-tight text-base">LIFELOG</span>
+          <span class="hidden sm:inline-block text-xs ml-2" style="color: var(--text-muted)">Your Life. Your Progress.</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Active Timer Mini Pill -->
+        <button id="header-timer-pill" class="hidden items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-blue-500/15 border border-blue-500/30 text-blue-400 tabular-nums" onclick="switchTab('record'); setRecordSubTab('timer');">
+          <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse-subtle"></span>
+          <span id="header-timer-text">00:00</span>
+        </button>
+
+        <!-- Demo badge if demo data exists -->
+        <span id="demo-mode-badge" class="hidden px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30">
+          DEMOデータ含
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-5xl mx-auto px-4 pt-4 pb-safe">
+    <div id="app-view"></div>
+  </main>
+
+  <!-- Bottom Navigation (5 Screens) -->
+  <nav class="nav-glass fixed bottom-0 left-0 right-0 z-40 bottom-nav-safe">
+    <div class="max-w-5xl mx-auto grid grid-cols-5 h-16">
+      <button class="nav-btn flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors" data-tab="home" onclick="switchTab('home')">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span>HOME</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors" data-tab="record" onclick="switchTab('record')">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+        <span>RECORD</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors" data-tab="analytics" onclick="switchTab('analytics')">
+        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        <span>ANALYTICS</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors" data-tab="calendar" onclick="switchTab('calendar')">
+        <i data-lucide="calendar-days" class="w-5 h-5"></i>
+        <span>CALENDAR</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors" data-tab="settings" onclick="switchTab('settings')">
+        <i data-lucide="settings" class="w-5 h-5"></i>
+        <span>SETTINGS</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal Container -->
+  <div id="modal-backdrop" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div id="modal-panel" class="w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-5 max-h-[90dvh] overflow-y-auto" style="background-color: var(--bg-card); border: 1px solid var(--border-strong);">
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-[90%] max-w-sm pointer-events-none"></div>
+
+  <script>
+    // ==========================================
+    // 1. CONSTANTS & STORAGE KEYS
+    // ==========================================
+    const STORAGE_KEY = 'lifelog_app_data_v1';
+    const TIMER_KEY = 'lifelog_active_timer_v1';
+
+    const CATEGORY_META = {
+      BODY:      { label: 'BODY',      jp: '身体・健康',   color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', icon: 'heart-pulse' },
+      STUDY:     { label: 'STUDY',     jp: '勉強',         color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', icon: 'book-open' },
+      CREATE:    { label: 'CREATE',    jp: 'AI・制作',     color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.15)',  icon: 'cpu' },
+      KNOWLEDGE: { label: 'KNOWLEDGE', jp: '読書・知識',   color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)', icon: 'library' },
+      LIFE:      { label: 'LIFE',      jp: '生活・習慣',   color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)', icon: 'home' },
+      OTHER:     { label: 'OTHER',     jp: 'その他',       color: '#ec4899', bg: 'rgba(236, 72, 153, 0.15)', icon: 'sparkles' }
+    };
+
+    const PRECISION_META = {
+      measured:    { label: '実測',   desc: 'タイマー計測',         color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.16)' },
+      manual:      { label: '手入力', desc: '時計等で確認して入力', color: '#10b981', bg: 'rgba(16, 185, 129, 0.16)' },
+      approx:      { label: '概算',   desc: 'おおよその時間',       color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.16)' },
+      unconfirmed: { label: '未確認', desc: '活動したか不明',       color: '#71717a', bg: 'rgba(113, 113, 122, 0.2)' }
+    };
+
+    function getDefaultData() {
+      return {
+        version: 1,
+        settings: {
+          heightCm: 180,
+          startWeightKg: 85.2,
+          targetWeightKg: 75.0,
+          theme: 'dark',
+          assistEnabled: true,
+          assistTime: '21:00',
+          browserNotify: false
+        },
+        categories: {
+          BODY: ['体重', '体脂肪率', '運動', '睡眠時間', '体調メモ'],
+          STUDY: ['数学', '英語', '物理', '化学', '国語', '情報', 'その他'],
+          CREATE: ['AI開発', 'プログラミング', 'アプリ開発', 'ブログ執筆', 'ビジネス研究', 'その他'],
+          KNOWLEDGE: ['読書', '新聞', 'オンライン学習', 'その他'],
+          LIFE: ['掃除', '家事', '整理整頓', '生活習慣', 'その他'],
+          OTHER: ['外出', '人との交流', '自由記録']
+        },
+        exerciseMenu: ['ランニング', 'ウォーキング', '筋トレ', 'スクワット', '腕立て伏せ', 'プランク', 'ストレッチ', 'その他'],
+        habits: [
+          { id: 'h_water', name: '朝の水分補給', active: true },
+          { id: 'h_english', name: '英語に触れる', active: true },
+          { id: 'h_move', name: '少しでも体を動かす', active: true },
+          { id: 'h_read', name: '読書 10分以上', active: true },
+          { id: 'h_sleep', name: '日付が変わる前に寝る準備', active: true }
+        ],
+        activities: [],
+        weights: [],
+        habitLogs: {},
+        confirmedRestDays: {},
+        assistDismissedDates: {}
+      };
+    }
+
+    function getDefaultTimer() {
+      return {
+        sessionId: null,
+        status: 'idle', // 'idle' | 'running' | 'paused'
+        mode: '25',     // '25' | '50' | 'free'
+        targetSec: 25 * 60,
+        category: 'STUDY',
+        item: '英語',
+        memo: '',
+        accumulatedMs: 0,
+        lastStartedAt: null
+      };
+    }
+
+    // ==========================================
+    // 2. SAFE STORAGE & DATE HELPERS
+    // ==========================================
+    function safeLoad(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        return JSON.parse(raw);
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function safeSave(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function toLocalDateStr(d = new Date()) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function toLocalDateTimeStr(d = new Date()) {
+      const datePart = toLocalDateStr(d);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${datePart}T${hh}:${mm}`;
+    }
+
+    function addDays(dateStr, delta) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dt = new Date(y, m - 1, d + delta);
+      return toLocalDateStr(dt);
+    }
+
+    function formatJapaneseDate(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+      return `${y}年${m}月${d}日 (${weekdays[dt.getDay()]})`;
+    }
+
+    function formatMinutes(mins) {
+      if (mins === null || mins === undefined) return '未記録';
+      if (mins < 60) return `${mins}分`;
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return m === 0 ? `${h}時間` : `${h}時間${m}分`;
+    }
+
+    function formatTimerClock(totalSec) {
+      const s = Math.max(0, Math.floor(totalSec));
+      const hrs = Math.floor(s / 3600);
+      const mins = Math.floor((s % 3600) / 60);
+      const secs = s % 60;
+      if (hrs > 0) {
+        return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function genId(prefix = 'id') {
+      return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    }
+
+    function escHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ==========================================
+    // 3. APP STATE
+    // ==========================================
+    let appData = Object.assign(getDefaultData(), safeLoad(STORAGE_KEY, {}));
+    // Ensure nested defaults exist
+    appData.settings = Object.assign(getDefaultData().settings, appData.settings || {});
+    appData.categories = Object.assign(getDefaultData().categories, appData.categories || {});
+    if (!Array.isArray(appData.exerciseMenu)) appData.exerciseMenu = getDefaultData().exerciseMenu;
+    if (!Array.isArray(appData.habits)) appData.habits = getDefaultData().habits;
+    if (!Array.isArray(appData.activities)) appData.activities = [];
+    if (!Array.isArray(appData.weights)) appData.weights = [];
+    if (!appData.habitLogs) appData.habitLogs = {};
+    if (!appData.confirmedRestDays) appData.confirmedRestDays = {};
+    if (!appData.assistDismissedDates) appData.assistDismissedDates = {};
+
+    let timerState = Object.assign(getDefaultTimer(), safeLoad(TIMER_KEY, {}));
+    let timerInterval = null;
+    let isSavingLock = false;
+
+    let currentTab = 'home';
+    let recordSubTab = 'timer'; // 'timer' | 'manual' | 'weight' | 'exercise' | 'habits'
+    let analyticsPeriod = 'week'; // 'week' | 'month' | 'quarter' | 'year' | 'custom'
+    let analyticsPrecisionFilter = 'all'; // 'all' | 'measured' | 'manual' | 'approx'
+    let analyticsCustomStart = addDays(toLocalDateStr(), -13);
+    let analyticsCustomEnd = toLocalDateStr();
+    let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    let selectedCalendarDate = toLocalDateStr();
+
+    let chartInstances = {};
+
+    function persistData() {
+      safeSave(STORAGE_KEY, appData);
+      updateDemoBadge();
+    }
+
+    function persistTimer() {
+      safeSave(TIMER_KEY, timerState);
+    }
+
+    function applyTheme() {
+      const theme = appData.settings.theme || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+
+    function updateDemoBadge() {
+      const hasDemo = appData.activities.some(a => a.isDemo) || appData.weights.some(w => w.isDemo);
+      const badge = document.getElementById('demo-mode-badge');
+      if (badge) {
+        badge.classList.toggle('hidden', !hasDemo);
+      }
+    }
+
+    // ==========================================
+    // 4. TOAST & MODAL SYSTEM (NO alert/confirm)
+    // ==========================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const colors = type === 'error'
+        ? 'bg-rose-500/95 text-white border-rose-400/40'
+        : type === 'info'
+          ? 'bg-blue-600/95 text-white border-blue-400/40'
+          : 'bg-emerald-600/95 text-white border-emerald-400/40';
+      el.className = `pointer-events-auto px-4 py-3 rounded-xl border text-sm font-medium shadow-xl flex items-center justify-between gap-2 transition-all duration-200 ${colors}`;
+      el.innerHTML = `<span>${escHtml(message)}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-6px)';
+        setTimeout(() => el.remove(), 200);
+      }, 2600);
+    }
+
+    function openModal(htmlContent) {
+      const backdrop = document.getElementById('modal-backdrop');
+      const content = document.getElementById('modal-content');
+      content.innerHTML = htmlContent;
+      backdrop.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+      document.getElementById('modal-content').innerHTML = '';
+    }
+
+    document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-backdrop') closeModal();
+    });
+
+    // ==========================================
+    // 5. TIMER ENGINE (Pause-safe & Reload-safe)
+    // ==========================================
+    function getTimerElapsedMs() {
+      if (timerState.status === 'running' && timerState.lastStartedAt) {
+        return timerState.accumulatedMs + Math.max(0, Date.now() - timerState.lastStartedAt);
+      }
+      return timerState.accumulatedMs || 0;
+    }
+
+    function startTimerLoop() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        updateTimerDisplays();
+      }, 500);
+    }
+
+    function updateTimerDisplays() {
+      const pill = document.getElementById('header-timer-pill');
+      const pillText = document.getElementById('header-timer-text');
+      const elapsedSec = Math.floor(getTimerElapsedMs() / 1000);
+
+      if (timerState.status === 'running' || timerState.status === 'paused') {
+        pill.classList.remove('hidden');
+        pill.classList.add('flex');
+        if (timerState.mode === 'free') {
+          pillText.textContent = formatTimerClock(elapsedSec);
+        } else {
+          const rem = Math.max(0, timerState.targetSec - elapsedSec);
+          pillText.textContent = `${formatTimerClock(rem)} ${timerState.status === 'paused' ? '(停止)' : ''}`;
+        }
+      } else {
+        pill.classList.add('hidden');
+        pill.classList.remove('flex');
+      }
+
+      // Update main timer UI if visible
+      const mainClock = document.getElementById('timer-main-clock');
+      const mainSub = document.getElementById('timer-sub-clock');
+      if (mainClock) {
+        if (timerState.mode === 'free') {
+          mainClock.textContent = formatTimerClock(elapsedSec);
+          if (mainSub) mainSub.textContent = '自由計測（経過時間）';
+        } else {
+          const rem = timerState.targetSec - elapsedSec;
+          if (rem >= 0) {
+            mainClock.textContent = formatTimerClock(rem);
+            if (mainSub) mainSub.textContent = `目標 ${Math.round(timerState.targetSec / 60)}分 ・ 経過 ${formatTimerClock(elapsedSec)}`;
+          } else {
+            mainClock.textContent = `+${formatTimerClock(Math.abs(rem))}`;
+            if (mainSub) mainSub.textContent = `目標達成！超過時間を含めて計測中（合計 ${formatTimerClock(elapsedSec)}）`;
+          }
+        }
+      }
+    }
+
+    function setTimerMode(mode) {
+      if (timerState.status !== 'idle') {
+        showToast('計測中はモードを変更できません', 'info');
+        return;
+      }
+      timerState.mode = mode;
+      timerState.targetSec = mode === '25' ? 25 * 60 : mode === '50' ? 50 * 60 : 0;
+      persistTimer();
+      renderView();
+    }
+
+    function startTimer() {
+      if (timerState.status !== 'idle') {
+        showToast('すでにタイマーが起動しています', 'info');
+        return;
+      }
+      const catEl = document.getElementById('timer-category');
+      const itemEl = document.getElementById('timer-item');
+      const memoEl = document.getElementById('timer-memo');
+      if (catEl) timerState.category = catEl.value;
+      if (itemEl) timerState.item = itemEl.value;
+      if (memoEl) timerState.memo = memoEl.value.trim();
+
+      timerState.sessionId = genId('tsess');
+      timerState.status = 'running';
+      timerState.accumulatedMs = 0;
+      timerState.lastStartedAt = Date.now();
+      persistTimer();
+      startTimerLoop();
+      renderView();
+      showToast('タイマーを開始しました', 'info');
+    }
+
+    function pauseTimer() {
+      if (timerState.status !== 'running') return;
+      timerState.accumulatedMs += Math.max(0, Date.now() - timerState.lastStartedAt);
+      timerState.lastStartedAt = null;
+      timerState.status = 'paused';
+      persistTimer();
+      renderView();
+    }
+
+    function resumeTimer() {
+      if (timerState.status !== 'paused') return;
+      timerState.lastStartedAt = Date.now();
+      timerState.status = 'running';
+      persistTimer();
+      startTimerLoop();
+      renderView();
+    }
+
+    function finishTimerAndSave() {
+      if (isSavingLock) return;
+      if (timerState.status === 'idle' || !timerState.sessionId) return;
+
+      // Prevent duplicate save for same sessionId
+      if (appData.activities.some(a => a.timerSessionId === timerState.sessionId)) {
+        resetTimerState();
+        renderView();
+        return;
+      }
+
+      isSavingLock = true;
+      const elapsedMs = getTimerElapsedMs();
+      const elapsedSec = Math.floor(elapsedMs / 1000);
+      const memoEl = document.getElementById('timer-memo');
+      const memo = memoEl ? memoEl.value.trim() : timerState.memo;
+
+      const minutes = Math.max(1, Math.round(elapsedSec / 60));
+      const today = toLocalDateStr();
+
+      appData.activities.unshift({
+        id: genId('act'),
+        timerSessionId: timerState.sessionId,
+        date: today,
+        startTime: '',
+        category: timerState.category,
+        item: timerState.item,
+        minutes: minutes,
+        exactSeconds: elapsedSec,
+        precision: 'measured',
+        memo: memo,
+        isDemo: false,
+        createdAt: new Date().toISOString()
+      });
+
+      persistData();
+      resetTimerState();
+      isSavingLock = false;
+      renderView();
+      showToast(`${timerState.item || CATEGORY_META[timerState.category].jp} を ${minutes}分（実測）で保存しました`);
+    }
+
+    function confirmDiscardTimer() {
+      openModal(`
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold">タイマーを破棄しますか？</h3>
+          <p class="text-sm" style="color: var(--text-secondary)">現在計測中の時間は記録されずにリセットされます。</p>
+          <div class="flex gap-3 pt-2">
+            <button class="btn-tap flex-1 card-elevated text-sm" onclick="closeModal()">キャンセル</button>
+            <button class="btn-tap flex-1 bg-rose-600 text-white text-sm" onclick="resetTimerState(); closeModal(); renderView(); showToast('タイマーをリセットしました', 'info');">破棄する</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function resetTimerState() {
+      const prevCat = timerState.category;
+      const prevItem = timerState.item;
+      const prevMode = timerState.mode;
+      timerState = getDefaultTimer();
+      timerState.category = prevCat;
+      timerState.item = prevItem;
+      timerState.mode = prevMode;
+      timerState.targetSec = prevMode === '25' ? 25 * 60 : prevMode === '50' ? 50 * 60 : 0;
+      persistTimer();
+      updateTimerDisplays();
+    }
+
+    // ==========================================
+    // 6. DATA COMPUTATION HELPERS
+    // ==========================================
+    function getLatestWeightInfo() {
+      if (appData.weights.length === 0) {
+        return {
+          weightKg: appData.settings.startWeightKg,
+          isInitial: true,
+          date: null,
+          bodyFatPct: null
+        };
+      }
+      const sorted = [...appData.weights].sort((a, b) => b.measuredAt.localeCompare(a.measuredAt));
+      return {
+        weightKg: sorted[0].weightKg,
+        isInitial: false,
+        date: sorted[0].date,
+        measuredAt: sorted[0].measuredAt,
+        bodyFatPct: sorted[0].bodyFatPct
+      };
+    }
+
+    function getWeightMovingAverage(days) {
+      const today = toLocalDateStr();
+      const cutoff = addDays(today, -(days - 1));
+      const inRange = appData.weights.filter(w => w.date >= cutoff && w.date <= today);
+      if (inRange.length === 0) return null;
+      const sum = inRange.reduce((acc, w) => acc + Number(w.weightKg), 0);
+      return {
+        avg: +(sum / inRange.length).toFixed(1),
+        count: inRange.length
+      };
+    }
+
+    function calcBMI(weightKg, heightCm) {
+      if (!heightCm || heightCm <= 0) return null;
+      const hm = heightCm / 100;
+      return +(weightKg / (hm * hm)).toFixed(1);
+    }
+
+    function getDayCategoryMinutes(dateStr, categoryFilterFn, precisionFilter = 'all') {
+      const matching = appData.activities.filter(a => {
+        if (a.date !== dateStr) return false;
+        if (!categoryFilterFn(a)) return false;
+        if (a.precision === 'unconfirmed') return false; // Never mix unconfirmed into totals
+        if (precisionFilter !== 'all' && a.precision !== precisionFilter) return false;
+        return true;
+      });
+      if (matching.length === 0) return null; // Return null so UI shows "未記録" rather than 0
+      return matching.reduce((s, a) => s + Number(a.minutes || 0), 0);
+    }
+
+    function getTodayHabitSummary(dateStr = toLocalDateStr()) {
+      const activeHabits = appData.habits.filter(h => h.active);
+      const dayLog = appData.habitLogs[dateStr] || {};
+      const completed = activeHabits.filter(h => dayLog[h.id]).length;
+      return { completed, total: activeHabits.length, activeHabits, dayLog };
+    }
+
+    function isCategoryConfirmedRest(dateStr, cat) {
+      const entry = appData.confirmedRestDays[dateStr];
+      if (!entry) return false;
+      if (entry.all) return true;
+      return Array.isArray(entry.categories) && entry.categories.includes(cat);
+    }
+
+    // ==========================================
+    // 7. NAVIGATION & RENDER DISPATCH
+    // ==========================================
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const active = btn.dataset.tab === tab;
+        btn.style.color = active ? 'var(--accent)' : 'var(--text-muted)';
+      });
+      renderView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setRecordSubTab(sub) {
+      recordSubTab = sub;
+      renderView();
+    }
+
+    function destroyAllCharts() {
+      Object.values(chartInstances).forEach(ch => {
+        if (ch && typeof ch.destroy === 'function') ch.destroy();
+      });
+      chartInstances = {};
+    }
+
+    function renderView() {
+      destroyAllCharts();
+      const container = document.getElementById('app-view');
+      if (currentTab === 'home') renderHome(container);
+      else if (currentTab === 'record') renderRecord(container);
+      else if (currentTab === 'analytics') renderAnalytics(container);
+      else if (currentTab === 'calendar') renderCalendar(container);
+      else if (currentTab === 'settings') renderSettings(container);
+
+      if (window.lucide) lucide.createIcons();
+      updateTimerDisplays();
+    }
+
+    // ==========================================
+    // 8. SCREEN ① HOME
+    // ==========================================
+    function renderHome(container) {
+      const today = toLocalDateStr();
+      const latestW = getLatestWeightInfo();
+      const targetW = appData.settings.targetWeightKg;
+      const diffW = +(latestW.weightKg - targetW).toFixed(1);
+      const bmi = calcBMI(latestW.weightKg, appData.settings.heightCm);
+
+      const studyMins = getDayCategoryMinutes(today, a => a.category === 'STUDY');
+      const exerciseMins = getDayCategoryMinutes(today, a => a.category === 'BODY' && a.item === '運動');
+      const readMins = getDayCategoryMinutes(today, a => a.category === 'KNOWLEDGE' && a.item === '読書');
+      const aiMins = getDayCategoryMinutes(today, a => a.category === 'CREATE' && (a.item === 'AI開発' || a.item === 'プログラミング' || a.item === 'アプリ開発'));
+
+      const habitSum = getTodayHabitSummary(today);
+
+      // Assist check
+      const nowHHMM = `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
+      const showAssist = appData.settings.assistEnabled &&
+        !appData.assistDismissedDates[today] &&
+        (nowHHMM >= appData.settings.assistTime || (!studyMins && !exerciseMins && !readMins && !aiMins));
+
+      // Last 7 days matrix
+      const last7 = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = addDays(today, -i);
+        const dayActs = appData.activities.filter(a => a.date === d && a.precision !== 'unconfirmed');
+        const hasW = appData.weights.some(w => w.date === d);
+        const hasRest = Boolean(appData.confirmedRestDays[d]?.all);
+        const mins = dayActs.reduce((s, a) => s + Number(a.minutes || 0), 0);
+        last7.push({
+          date: d,
+          label: `${Number(d.slice(5,7))}/${Number(d.slice(8,10))}`,
+          isToday: d === today,
+          mins,
+          hasW,
+          hasStudy: dayActs.some(a => a.category === 'STUDY'),
+          hasExercise: dayActs.some(a => a.category === 'BODY' && a.item === '運動'),
+          hasCreate: dayActs.some(a => a.category === 'CREATE'),
+          hasKnowledge: dayActs.some(a => a.category === 'KNOWLEDGE'),
+          hasRest
+        });
+      }
+
+      container.innerHTML = `
+        <div class="space-y-5">
+          <!-- Date & Greeting Header -->
+          <div class="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <p class="text-xs font-medium tracking-wider uppercase" style="color: var(--text-muted)">TODAY</p>
+              <h1 class="text-2xl font-semibold tracking-tight">${formatJapaneseDate(today)}</h1>
+            </div>
+            <button class="btn-tap px-3.5 py-2 card-elevated text-xs font-medium" onclick="openRetroactiveModal()">
+              <i data-lucide="history" class="w-4 h-4 text-amber-400"></i>
+              <span>後から記録</span>
+            </button>
+          </div>
+
+          <!-- Quick Actions (4 Thumb-friendly buttons) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <button class="btn-tap card p-3.5 flex-col items-start justify-between text-left hover:border-emerald-500/40" onclick="openQuickWeightModal()">
+              <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+                <i data-lucide="scale" class="w-5 h-5"></i>
+              </div>
+              <div class="mt-2">
+                <div class="text-sm font-semibold">体重を記録</div>
+                <div class="text-[11px]" style="color: var(--text-muted)">約5秒で完了</div>
+              </div>
+            </button>
+
+            <button class="btn-tap card p-3.5 flex-col items-start justify-between text-left hover:border-blue-500/40" onclick="switchTab('record'); setRecordSubTab('timer');">
+              <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center">
+                <i data-lucide="timer" class="w-5 h-5"></i>
+              </div>
+              <div class="mt-2">
+                <div class="text-sm font-semibold">勉強タイマー</div>
+                <div class="text-[11px]" style="color: var(--text-muted)">${timerState.status === 'idle' ? '25分・50分・自由' : '計測画面へ'}</div>
+              </div>
+            </button>
+
+            <button class="btn-tap card p-3.5 flex-col items-start justify-between text-left hover:border-cyan-500/40" onclick="openQuickExerciseModal()">
+              <div class="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
+                <i data-lucide="dumbbell" class="w-5 h-5"></i>
+              </div>
+              <div class="mt-2">
+                <div class="text-sm font-semibold">運動を記録</div>
+                <div class="text-[11px]" style="color: var(--text-muted)">時間・回数もOK</div>
+              </div>
+            </button>
+
+            <button class="btn-tap card p-3.5 flex-col items-start justify-between text-left hover:border-violet-500/40" onclick="switchTab('record'); setRecordSubTab('manual');">
+              <div class="w-9 h-9 rounded-xl bg-violet-500/15 text-violet-400 flex items-center justify-center">
+                <i data-lucide="pen-line" class="w-5 h-5"></i>
+              </div>
+              <div class="mt-2">
+                <div class="text-sm font-semibold">その他の活動</div>
+                <div class="text-[11px]" style="color: var(--text-muted)">概算・過去日対応</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Weight Hero Card -->
+          <div class="card p-5">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-medium" style="color: var(--text-secondary)">現在の体重</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded-full card-elevated" style="color: var(--text-muted)">
+                    ${latestW.isInitial ? '初期設定値' : (latestW.date === today ? '本日記録済み' : `最終: ${latestW.date}`)}
+                  </span>
+                </div>
+                <div class="mt-1 flex items-baseline gap-2">
+                  <span class="text-4xl font-semibold tracking-tight tabular-nums">${latestW.weightKg.toFixed(1)}</span>
+                  <span class="text-base" style="color: var(--text-secondary)">kg</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4 sm:gap-6 text-right sm:text-left">
+                <div>
+                  <div class="text-[11px]" style="color: var(--text-muted)">目標体重</div>
+                  <div class="text-base font-semibold tabular-nums">${targetW.toFixed(1)} <span class="text-xs font-normal">kg</span></div>
+                </div>
+                <div>
+                  <div class="text-[11px]" style="color: var(--text-muted)">目標まで</div>
+                  <div class="text-base font-semibold tabular-nums ${diffW > 0 ? 'text-amber-400' : 'text-emerald-400'}">
+                    ${diffW > 0 ? `-${diffW.toFixed(1)}` : `+${Math.abs(diffW).toFixed(1)}`} <span class="text-xs font-normal">kg</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="text-[11px]" style="color: var(--text-muted)">BMI参考</div>
+                  <div class="text-base font-semibold tabular-nums">${bmi !== null ? bmi.toFixed(1) : '—'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Today's 4 Activity Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            ${renderTodayMetricCard('今日の勉強', studyMins, 'STUDY', 'book-open', '#3b82f6', today)}
+            ${renderTodayMetricCard('今日の運動', exerciseMins, 'BODY', 'dumbbell', '#10b981', today)}
+            ${renderTodayMetricCard('今日の読書', readMins, 'KNOWLEDGE', 'library', '#8b5cf6', today)}
+            ${renderTodayMetricCard('AI開発・作業', aiMins, 'CREATE', 'cpu', '#06b6d4', today)}
+          </div>
+
+          <!-- Habits & Last 7 Days -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Today's Habits -->
+            <div class="card p-5 space-y-3">
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold flex items-center gap-2">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                  <span>今日の習慣</span>
+                </h2>
+                <span class="text-xs tabular-nums" style="color: var(--text-secondary)">
+                  ${habitSum.total > 0 ? `${habitSum.completed} / ${habitSum.total} 達成` : '未設定'}
+                </span>
+              </div>
+              <div class="space-y-2">
+                ${habitSum.activeHabits.length === 0 ? `<p class="text-xs py-2" style="color: var(--text-muted)">設定画面から習慣を追加できます</p>` :
+                  habitSum.activeHabits.map(h => {
+                    const done = !!habitSum.dayLog[h.id];
+                    return `
+                      <button class="w-full btn-tap justify-between px-3.5 py-2.5 card-elevated text-left ${done ? 'border-emerald-500/40' : ''}" onclick="toggleHabit('${today}', '${h.id}')">
+                        <span class="text-sm ${done ? 'line-through opacity-75' : ''}">${escHtml(h.name)}</span>
+                        <span class="w-5 h-5 rounded-full flex items-center justify-center ${done ? 'bg-emerald-500 text-white' : 'border border-zinc-600'}">
+                          ${done ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+                        </span>
+                      </button>
+                    `;
+                  }).join('')
+                }
+              </div>
+            </div>
+
+            <!-- Last 7 Days Overview -->
+            <div class="card p-5 space-y-3">
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold flex items-center gap-2">
+                  <i data-lucide="calendar-range" class="w-4 h-4 text-blue-400"></i>
+                  <span>直近7日間の活動状況</span>
+                </h2>
+                <button class="text-xs text-blue-400 hover:underline" onclick="switchTab('calendar')">カレンダーへ</button>
+              </div>
+              <div class="grid grid-cols-7 gap-1.5 pt-1">
+                ${last7.map(day => {
+                  const dots = [];
+                  if (day.hasStudy) dots.push('#3b82f6');
+                  if (day.hasExercise) dots.push('#10b981');
+                  if (day.hasW) dots.push('#f59e0b');
+                  if (day.hasKnowledge) dots.push('#8b5cf6');
+                  if (day.hasCreate) dots.push('#06b6d4');
+                  return `
+                    <button class="flex flex-col items-center p-2 rounded-xl card-elevated ${day.isToday ? 'ring-1 ring-blue-500/60' : ''}" onclick="selectedCalendarDate='${day.date}'; switchTab('calendar');">
+                      <span class="text-[11px] tabular-nums ${day.isToday ? 'text-blue-400 font-semibold' : ''}" style="${day.isToday ? '' : 'color: var(--text-muted)'}">${day.label}</span>
+                      <div class="h-6 flex items-center justify-center gap-0.5 flex-wrap my-1">
+                        ${dots.length > 0
+                          ? dots.map(c => `<span class="w-1.5 h-1.5 rounded-full" style="background-color:${c}"></span>`).join('')
+                          : day.hasRest
+                            ? `<span class="text-[10px]" style="color: var(--text-muted)">休</span>`
+                            : `<span class="text-[10px]" style="color: var(--text-muted)">—</span>`
+                        }
+                      </div>
+                      <span class="text-[10px] tabular-nums" style="color: var(--text-secondary)">${day.mins > 0 ? `${day.mins}m` : '未'}</span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+              <p class="text-[11px] pt-1" style="color: var(--text-muted)">
+                「未」は未記録を表します。記録を忘れても、いつでも後から追加できます。
+              </p>
+            </div>
+          </div>
+
+          <!-- Recording Assist Card -->
+          ${showAssist ? `
+            <div class="card p-4 border-blue-500/30 bg-blue-500/5">
+              <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2 text-sm font-semibold text-blue-400">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span>今日の振り返りアシスト</span>
+                  </div>
+                  <p class="text-xs" style="color: var(--text-secondary)">
+                    記録漏れはありませんか？概算でも、今日はお休みでも大丈夫です。
+                  </p>
+                </div>
+                <button class="text-xs px-2 py-1 rounded-lg card-elevated" style="color: var(--text-muted)" onclick="dismissAssistToday()">閉じる</button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                ${renderAssistQuestion('今日の勉強は記録した？', studyMins, 'STUDY', '英語')}
+                ${renderAssistQuestion('運動は記録した？', exerciseMins, 'BODY', '運動')}
+                ${renderAssistQuestion('読書やAI開発は記録した？', (readMins || 0) + (aiMins || 0) || null, 'KNOWLEDGE', '読書')}
+                <button class="btn-tap justify-between px-3 py-2 card-elevated text-xs" onclick="openRetroactiveModal()">
+                  <span>記録していない活動はある？</span>
+                  <span class="text-blue-400 font-medium">追加する →</span>
+                </button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderTodayMetricCard(title, mins, catKey, icon, color, dateStr) {
+      const isRest = isCategoryConfirmedRest(dateStr, catKey);
+      const display = mins !== null ? formatMinutes(mins) : (isRest ? '活動なし(確認済)' : '未記録');
+      const isUnrecorded = mins === null && !isRest;
+      return `
+        <div class="card p-4 flex flex-col justify-between gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium" style="color: var(--text-secondary)">${title}</span>
+            <i data-lucide="${icon}" class="w-4 h-4" style="color: ${color}"></i>
+          </div>
+          <div class="text-lg font-semibold tabular-nums ${isUnrecorded ? 'opacity-60 text-base' : ''}">
+            ${display}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAssistQuestion(label, mins, cat, defaultItem) {
+      if (mins !== null) {
+        return `
+          <div class="px-3 py-2 rounded-xl card-elevated flex items-center justify-between text-xs opacity-75">
+            <span>${label}</span>
+            <span class="text-emerald-400 font-medium">記録済 (${formatMinutes(mins)})</span>
+          </div>
+        `;
+      }
+      return `
+        <div class="px-3 py-2 rounded-xl card-elevated flex items-center justify-between gap-2 text-xs">
+          <span>${label}</span>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button class="px-2 py-1 rounded-md bg-blue-500/20 text-blue-400 font-medium" onclick="openRetroactiveModal('${toLocalDateStr()}', '${cat}', '${defaultItem}')">概算で記録</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function dismissAssistToday() {
+      appData.assistDismissedDates[toLocalDateStr()] = true;
+      persistData();
+      renderView();
+    }
+
+    function toggleHabit(dateStr, habitId) {
+      if (!appData.habitLogs[dateStr]) appData.habitLogs[dateStr] = {};
+      appData.habitLogs[dateStr][habitId] = !appData.habitLogs[dateStr][habitId];
+      persistData();
+      renderView();
+    }
+
+    // ==========================================
+    // 9. SCREEN ② RECORD (Timer, Manual/Retro, Weight, Exercise, Habits)
+    // ==========================================
+    function renderRecord(container) {
+      const tabs = [
+        { id: 'timer', label: 'タイマー', icon: 'timer' },
+        { id: 'manual', label: '手動・後から', icon: 'pen-line' },
+        { id: 'weight', label: '体重・体調', icon: 'scale' },
+        { id: 'exercise', label: '運動', icon: 'dumbbell' },
+        { id: 'habits', label: '習慣', icon: 'check-square' }
+      ];
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <!-- Sub Navigation -->
+          <div class="flex gap-1.5 overflow-x-auto pb-1">
+            ${tabs.map(t => {
+              const active = recordSubTab === t.id;
+              return `
+                <button class="btn-tap px-3.5 py-2 text-xs whitespace-nowrap shrink-0 ${active ? 'bg-blue-600 text-white' : 'card-elevated'}" onclick="setRecordSubTab('${t.id}')">
+                  <i data-lucide="${t.icon}" class="w-3.5 h-3.5"></i>
+                  <span>${t.label}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+
+          <div id="record-subview"></div>
+        </div>
+      `;
+
+      const sub = document.getElementById('record-subview');
+      if (recordSubTab === 'timer') renderRecordTimer(sub);
+      else if (recordSubTab === 'manual') renderRecordManual(sub);
+      else if (recordSubTab === 'weight') renderRecordWeight(sub);
+      else if (recordSubTab === 'exercise') renderRecordExercise(sub);
+      else if (recordSubTab === 'habits') renderRecordHabits(sub);
+    }
+
+    function renderRecordTimer(container) {
+      const cats = ['STUDY', 'CREATE', 'KNOWLEDGE', 'BODY', 'LIFE', 'OTHER'];
+      const items = appData.categories[timerState.category] || ['その他'];
+      if (!items.includes(timerState.item)) timerState.item = items[0] || 'その他';
+
+      const isIdle = timerState.status === 'idle';
+      const isRunning = timerState.status === 'running';
+      const isPaused = timerState.status === 'paused';
+
+      container.innerHTML = `
+        <div class="card p-5 sm:p-7 space-y-6">
+          <!-- Mode selector -->
+          <div class="flex items-center justify-center gap-2">
+            ${[
+              { id: '25', label: '25分 (集中)' },
+              { id: '50', label: '50分 (深い学習)' },
+              { id: 'free', label: '自由計測' }
+            ].map(m => `
+              <button class="px-3.5 py-2 rounded-xl text-xs font-medium transition-colors ${timerState.mode === m.id ? 'bg-blue-600 text-white' : 'card-elevated'} ${!isIdle ? 'opacity-50 cursor-not-allowed' : ''}" onclick="setTimerMode('${m.id}')">
+                ${m.label}
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- Clock Display -->
+          <div class="text-center py-4 space-y-2">
+            <div id="timer-main-clock" class="text-6xl sm:text-7xl font-semibold tracking-tight tabular-nums">00:00</div>
+            <div id="timer-sub-clock" class="text-xs" style="color: var(--text-muted)">
+              ${isIdle ? 'カテゴリーを選んで開始してください（実測として自動保存）' : ''}
+            </div>
+          </div>
+
+          <!-- Category & Item & Memo -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">カテゴリー</label>
+              <select id="timer-category" class="input-base" ${!isIdle ? 'disabled' : ''} onchange="onTimerCategoryChange(this.value)">
+                ${cats.map(c => `<option value="${c}" ${timerState.category === c ? 'selected' : ''}>${CATEGORY_META[c].label} (${CATEGORY_META[c].jp})</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">項目・科目</label>
+              <select id="timer-item" class="input-base" ${!isIdle ? 'disabled' : ''} onchange="timerState.item=this.value; persistTimer();">
+                ${items.map(it => `<option value="${escHtml(it)}" ${timerState.item === it ? 'selected' : ''}>${escHtml(it)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">内容のメモ（任意）</label>
+              <input id="timer-memo" type="text" class="input-base" placeholder="例: 英語長文 2題、API設計など" value="${escHtml(timerState.memo)}" oninput="timerState.memo=this.value; persistTimer();" />
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="flex flex-wrap gap-3 justify-center pt-2">
+            ${isIdle ? `
+              <button class="btn-tap w-full sm:w-64 bg-blue-600 hover:bg-blue-500 text-white text-base font-semibold py-3.5" onclick="startTimer()">
+                <i data-lucide="play" class="w-5 h-5"></i>
+                <span>タイマー開始</span>
+              </button>
+            ` : ''}
+
+            ${isRunning ? `
+              <button class="btn-tap flex-1 sm:flex-none sm:w-44 bg-amber-500/20 text-amber-400 border border-amber-500/40 py-3.5" onclick="pauseTimer()">
+                <i data-lucide="pause" class="w-5 h-5"></i>
+                <span>一時停止</span>
+              </button>
+              <button class="btn-tap flex-1 sm:flex-none sm:w-48 bg-emerald-600 hover:bg-emerald-500 text-white py-3.5" onclick="finishTimerAndSave()">
+                <i data-lucide="check" class="w-5 h-5"></i>
+                <span>終了して保存</span>
+              </button>
+            ` : ''}
+
+            ${isPaused ? `
+              <button class="btn-tap flex-1 sm:flex-none sm:w-44 bg-blue-600 hover:bg-blue-500 text-white py-3.5" onclick="resumeTimer()">
+                <i data-lucide="play" class="w-5 h-5"></i>
+                <span>再開</span>
+              </button>
+              <button class="btn-tap flex-1 sm:flex-none sm:w-48 bg-emerald-600 hover:bg-emerald-500 text-white py-3.5" onclick="finishTimerAndSave()">
+                <i data-lucide="check" class="w-5 h-5"></i>
+                <span>終了して保存</span>
+              </button>
+              <button class="btn-tap px-4 card-elevated text-rose-400 text-xs" onclick="confirmDiscardTimer()">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <span>破棄</span>
+              </button>
+            ` : ''}
+          </div>
+          <p class="text-[11px] text-center" style="color: var(--text-muted)">
+            一時停止中の時間は活動時間に含まれません。アプリを閉じても計測状態は復元されます。
+          </p>
+        </div>
+      `;
+    }
+
+    function onTimerCategoryChange(cat) {
+      timerState.category = cat;
+      const items = appData.categories[cat] || ['その他'];
+      timerState.item = items[0] || 'その他';
+      persistTimer();
+      renderView();
+    }
+
+    function renderRecordManual(container) {
+      const today = toLocalDateStr();
+      const cats = Object.keys(CATEGORY_META);
+      const selectedCat = window._manualCat || 'STUDY';
+      const items = appData.categories[selectedCat] || ['その他'];
+
+      container.innerHTML = `
+        <div class="card p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-semibold">手動記録・後から記録</h2>
+              <p class="text-xs" style="color: var(--text-muted)">正確な時間が分からなくても「概算」で素早く記録できます</p>
+            </div>
+          </div>
+
+          <form id="manual-log-form" class="space-y-4" onsubmit="submitManualLog(event)">
+            <!-- Category Pills -->
+            <div>
+              <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">カテゴリー</label>
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                ${cats.map(c => {
+                  const active = selectedCat === c;
+                  return `
+                    <button type="button" class="btn-tap py-2 px-2 text-xs ${active ? 'bg-blue-600 text-white' : 'card-elevated'}" onclick="window._manualCat='${c}'; renderView();">
+                      ${CATEGORY_META[c].jp}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="text-xs" style="color: var(--text-secondary)">活動内容・項目</label>
+                  <button type="button" class="text-[11px] text-blue-400" onclick="openQuickAddItemModal('${selectedCat}')">+ 項目を追加</button>
+                </div>
+                <select id="manual-item" class="input-base">
+                  ${items.map(it => `<option value="${escHtml(it)}">${escHtml(it)}</option>`).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">日付（過去日も選択可）</label>
+                <input id="manual-date" type="date" class="input-base" value="${today}" required />
+              </div>
+            </div>
+
+            <!-- Duration Quick Chips -->
+            <div>
+              <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">所要時間（分）</label>
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                ${[10, 15, 30, 45, 60, 90, 120].map(m => `
+                  <button type="button" class="px-3 py-1.5 rounded-lg card-elevated text-xs font-medium tabular-nums hover:border-blue-500/50" onclick="document.getElementById('manual-minutes').value=${m}">
+                    ${m}分
+                  </button>
+                `).join('')}
+              </div>
+              <input id="manual-minutes" type="number" min="1" max="1440" class="input-base tabular-nums" value="30" required />
+            </div>
+
+            <!-- Precision Selector (4 types) -->
+            <div>
+              <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">記録の精度</label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                ${Object.entries(PRECISION_META).map(([key, meta], idx) => `
+                  <label class="cursor-pointer">
+                    <input type="radio" name="manual-precision" value="${key}" class="peer hidden" ${key === 'approx' ? 'checked' : ''} />
+                    <div class="p-2.5 rounded-xl card-elevated border border-transparent peer-checked:border-blue-500 peer-checked:bg-blue-500/10 text-center">
+                      <div class="text-xs font-semibold">${meta.label}</div>
+                      <div class="text-[10px] mt-0.5" style="color: var(--text-muted)">${meta.desc}</div>
+                    </div>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">開始時刻（任意）</label>
+                <input id="manual-start-time" type="time" class="input-base" />
+              </div>
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">メモ（任意）</label>
+                <input id="manual-memo" type="text" class="input-base" placeholder="詳細や気づきなど" />
+              </div>
+            </div>
+
+            <button type="submit" class="btn-tap w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>記録を保存する</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Recent Logs -->
+        <div class="card p-5 space-y-3 mt-4">
+          <h3 class="text-sm font-semibold">最近の記録</h3>
+          ${renderActivityList(appData.activities.slice(0, 8))}
+        </div>
+      `;
+    }
+
+    function submitManualLog(e) {
+      e.preventDefault();
+      if (isSavingLock) return;
+      isSavingLock = true;
+
+      const cat = window._manualCat || 'STUDY';
+      const item = document.getElementById('manual-item').value;
+      const date = document.getElementById('manual-date').value;
+      const minutes = parseInt(document.getElementById('manual-minutes').value, 10);
+      const precision = document.querySelector('input[name="manual-precision"]:checked')?.value || 'approx';
+      const startTime = document.getElementById('manual-start-time').value;
+      const memo = document.getElementById('manual-memo').value.trim();
+
+      if (!date || isNaN(minutes) || minutes <= 0) {
+        isSavingLock = false;
+        showToast('日付と正しい時間を入力してください', 'error');
+        return;
+      }
+
+      appData.activities.unshift({
+        id: genId('act'),
+        date,
+        startTime,
+        category: cat,
+        item,
+        minutes,
+        precision,
+        memo,
+        isDemo: false,
+        createdAt: new Date().toISOString()
+      });
+      persistData();
+      isSavingLock = false;
+      renderView();
+      showToast(`${item}（${minutes}分・${PRECISION_META[precision].label}）を記録しました`);
+    }
+
+    function renderRecordWeight(container) {
+      const latest = getLatestWeightInfo();
+      const avg7 = getWeightMovingAverage(7);
+      const avg30 = getWeightMovingAverage(30);
+      const bmi = calcBMI(latest.weightKg, appData.settings.heightCm);
+      const remain = +(latest.weightKg - appData.settings.targetWeightKg).toFixed(1);
+      const sortedWeights = [...appData.weights].sort((a, b) => b.measuredAt.localeCompare(a.measuredAt));
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <!-- Stats Row -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="card p-4">
+              <div class="text-[11px]" style="color: var(--text-muted)">現在体重</div>
+              <div class="text-xl font-semibold tabular-nums mt-0.5">${latest.weightKg.toFixed(1)} kg</div>
+            </div>
+            <div class="card p-4">
+              <div class="text-[11px]" style="color: var(--text-muted)">目標まで (${appData.settings.targetWeightKg}kg)</div>
+              <div class="text-xl font-semibold tabular-nums mt-0.5 ${remain > 0 ? 'text-amber-400' : 'text-emerald-400'}">${remain > 0 ? `-${remain.toFixed(1)}` : `+${Math.abs(remain).toFixed(1)}`} kg</div>
+            </div>
+            <div class="card p-4">
+              <div class="text-[11px]" style="color: var(--text-muted)">7日平均 (${avg7 ? avg7.count + '日分' : '記録なし'})</div>
+              <div class="text-xl font-semibold tabular-nums mt-0.5">${avg7 ? `${avg7.avg} kg` : '未記録'}</div>
+            </div>
+            <div class="card p-4">
+              <div class="text-[11px]" style="color: var(--text-muted)">30日平均 / BMI</div>
+              <div class="text-xl font-semibold tabular-nums mt-0.5">${avg30 ? `${avg30.avg}` : '—'} <span class="text-xs font-normal" style="color: var(--text-muted)">/ ${bmi || '—'}</span></div>
+            </div>
+          </div>
+
+          <!-- Weight Entry Form -->
+          <div class="card p-5 space-y-4">
+            <h2 class="text-base font-semibold">体重・体調を記録</h2>
+            <form class="space-y-3" onsubmit="submitWeightForm(event)">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">体重 (kg)</label>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" class="btn-tap px-3 card-elevated text-sm" onclick="stepWeightInput(-0.1)">-0.1</button>
+                    <input id="weight-input-kg" type="number" step="0.1" min="20" max="300" class="input-base text-center font-semibold tabular-nums" value="${latest.weightKg.toFixed(1)}" required />
+                    <button type="button" class="btn-tap px-3 card-elevated text-sm" onclick="stepWeightInput(0.1)">+0.1</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">体脂肪率（任意 %）</label>
+                  <input id="weight-input-fat" type="number" step="0.1" min="3" max="70" class="input-base tabular-nums" placeholder="例: 22.5" />
+                </div>
+                <div>
+                  <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">睡眠時間（任意 時間）</label>
+                  <input id="weight-input-sleep" type="number" step="0.5" min="0" max="24" class="input-base tabular-nums" placeholder="例: 7.0" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">測定日時</label>
+                  <input id="weight-input-dt" type="datetime-local" class="input-base" value="${toLocalDateTimeStr()}" required />
+                </div>
+                <div>
+                  <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">体調メモ（任意）</label>
+                  <input id="weight-input-note" type="text" class="input-base" placeholder="例: 朝の起床時、体調良好" />
+                </div>
+              </div>
+              <button type="submit" class="btn-tap w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>体重を保存</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Weight History -->
+          <div class="card p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold">体重履歴（測定日のみ記録・補完なし）</h3>
+              <span class="text-xs" style="color: var(--text-muted)">${sortedWeights.length}件</span>
+            </div>
+            ${sortedWeights.length === 0 ? `<p class="text-xs py-3" style="color: var(--text-muted)">まだ体重の記録がありません。最初の記録を追加してみましょう。</p>` : `
+              <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                ${sortedWeights.map(w => `
+                  <div class="p-3 rounded-xl card-elevated flex items-center justify-between gap-3">
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-base font-semibold tabular-nums">${Number(w.weightKg).toFixed(1)} kg</span>
+                        ${w.bodyFatPct ? `<span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 tabular-nums">体脂肪 ${w.bodyFatPct}%</span>` : ''}
+                        ${w.sleepHours ? `<span class="text-xs px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 tabular-nums">睡眠 ${w.sleepHours}h</span>` : ''}
+                        ${w.isDemo ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">DEMO</span>` : ''}
+                      </div>
+                      <div class="text-[11px] mt-0.5" style="color: var(--text-muted)">
+                        ${w.measuredAt.replace('T', ' ')} ${w.note ? `・ ${escHtml(w.note)}` : ''}
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <button class="p-2 rounded-lg hover:bg-white/5 text-zinc-400" onclick="openEditWeightModal('${w.id}')" title="編集">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-2 rounded-lg hover:bg-rose-500/10 text-rose-400" onclick="confirmDeleteWeight('${w.id}')" title="削除">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    function stepWeightInput(delta) {
+      const el = document.getElementById('weight-input-kg');
+      if (!el) return;
+      const val = parseFloat(el.value) || appData.settings.startWeightKg;
+      el.value = Math.max(20, Math.min(300, val + delta)).toFixed(1);
+    }
+
+    function submitWeightForm(e) {
+      e.preventDefault();
+      const kg = parseFloat(document.getElementById('weight-input-kg').value);
+      const fatVal = document.getElementById('weight-input-fat').value;
+      const sleepVal = document.getElementById('weight-input-sleep').value;
+      const dt = document.getElementById('weight-input-dt').value || toLocalDateTimeStr();
+      const note = document.getElementById('weight-input-note').value.trim();
+
+      if (isNaN(kg) || kg < 20 || kg > 300) {
+        showToast('正しい体重を入力してください', 'error');
+        return;
+      }
+
+      appData.weights.unshift({
+        id: genId('wt'),
+        date: dt.slice(0, 10),
+        measuredAt: dt,
+        weightKg: +kg.toFixed(1),
+        bodyFatPct: fatVal ? +parseFloat(fatVal).toFixed(1) : null,
+        sleepHours: sleepVal ? +parseFloat(sleepVal).toFixed(1) : null,
+        note,
+        isDemo: false,
+        createdAt: new Date().toISOString()
+      });
+      persistData();
+      renderView();
+      showToast(`体重 ${kg.toFixed(1)}kg を保存しました`);
+    }
+
+    function renderRecordExercise(container) {
+      const today = toLocalDateStr();
+      container.innerHTML = `
+        <div class="card p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-semibold">運動を記録</h2>
+              <p class="text-xs" style="color: var(--text-muted)">時間だけでなく、回数・セット数・距離も任意で記録できます</p>
+            </div>
+            <button class="text-xs text-blue-400" onclick="switchTab('settings')">メニュー編集</button>
+          </div>
+
+          <form class="space-y-4" onsubmit="submitExerciseForm(event)">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">運動メニュー</label>
+                <select id="ex-menu" class="input-base">
+                  ${appData.exerciseMenu.map(m => `<option value="${escHtml(m)}">${escHtml(m)}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">日付</label>
+                <input id="ex-date" type="date" class="input-base" value="${today}" required />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">時間（分）</label>
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                ${[10, 15, 20, 30, 45, 60].map(m => `
+                  <button type="button" class="px-3 py-1.5 rounded-lg card-elevated text-xs tabular-nums" onclick="document.getElementById('ex-minutes').value=${m}">${m}分</button>
+                `).join('')}
+              </div>
+              <input id="ex-minutes" type="number" min="1" max="600" class="input-base tabular-nums" value="20" required />
+            </div>
+
+            <div class="grid grid-cols-3 gap-2.5">
+              <div>
+                <label class="block text-[11px] mb-1" style="color: var(--text-muted)">回数 (任意)</label>
+                <input id="ex-reps" type="number" min="0" class="input-base tabular-nums" placeholder="例: 20" />
+              </div>
+              <div>
+                <label class="block text-[11px] mb-1" style="color: var(--text-muted)">セット数 (任意)</label>
+                <input id="ex-sets" type="number" min="0" class="input-base tabular-nums" placeholder="例: 3" />
+              </div>
+              <div>
+                <label class="block text-[11px] mb-1" style="color: var(--text-muted)">距離 km (任意)</label>
+                <input id="ex-dist" type="number" step="0.1" min="0" class="input-base tabular-nums" placeholder="例: 3.5" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">記録精度</label>
+                <select id="ex-precision" class="input-base">
+                  <option value="manual">手入力（時計等で確認）</option>
+                  <option value="approx" selected>概算（おおよそ）</option>
+                  <option value="measured">実測</option>
+                  <option value="unconfirmed">未確認</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">メモ（任意）</label>
+                <input id="ex-memo" type="text" class="input-base" placeholder="強度や感想など" />
+              </div>
+            </div>
+
+            <button type="submit" class="btn-tap w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3.5">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>運動を保存する</span>
+            </button>
+          </form>
+        </div>
+      `;
+    }
+
+    function submitExerciseForm(e) {
+      e.preventDefault();
+      const exName = document.getElementById('ex-menu').value;
+      const date = document.getElementById('ex-date').value;
+      const minutes = parseInt(document.getElementById('ex-minutes').value, 10);
+      const reps = document.getElementById('ex-reps').value;
+      const sets = document.getElementById('ex-sets').value;
+      const dist = document.getElementById('ex-dist').value;
+      const precision = document.getElementById('ex-precision').value;
+      const memo = document.getElementById('ex-memo').value.trim();
+
+      const details = [];
+      if (reps) details.push(`${reps}回`);
+      if (sets) details.push(`${sets}セット`);
+      if (dist) details.push(`${dist}km`);
+      const detailStr = details.length ? `[${exName}: ${details.join(' / ')}] ` : `[${exName}] `;
+
+      appData.activities.unshift({
+        id: genId('act'),
+        date,
+        startTime: '',
+        category: 'BODY',
+        item: '運動',
+        exerciseName: exName,
+        exerciseDetails: {
+          reps: reps ? Number(reps) : null,
+          sets: sets ? Number(sets) : null,
+          distanceKm: dist ? Number(dist) : null
+        },
+        minutes,
+        precision,
+        memo: `${detailStr}${memo}`.trim(),
+        isDemo: false,
+        createdAt: new Date().toISOString()
+      });
+      persistData();
+      renderView();
+      showToast(`${exName}（${minutes}分）を記録しました`);
+    }
+
+    function renderRecordHabits(container) {
+      const targetDate = window._habitTargetDate || toLocalDateStr();
+      const habitSum = getTodayHabitSummary(targetDate);
+
+      container.innerHTML = `
+        <div class="card p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-base font-semibold">生活習慣チェック</h2>
+              <p class="text-xs" style="color: var(--text-muted)">過去の日の習慣も後からチェックできます</p>
+            </div>
+            <input type="date" class="input-base w-auto text-sm" value="${targetDate}" onchange="window._habitTargetDate=this.value; renderView();" />
+          </div>
+
+          <div class="space-y-2">
+            ${habitSum.activeHabits.map(h => {
+              const done = !!habitSum.dayLog[h.id];
+              return `
+                <button class="w-full btn-tap justify-between px-4 py-3 card-elevated text-left ${done ? 'border-emerald-500/40' : ''}" onclick="toggleHabit('${targetDate}', '${h.id}')">
+                  <span class="text-sm font-medium ${done ? 'line-through opacity-75' : ''}">${escHtml(h.name)}</span>
+                  <span class="w-6 h-6 rounded-full flex items-center justify-center ${done ? 'bg-emerald-500 text-white' : 'border border-zinc-600'}">
+                    ${done ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+                  </span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 10. SCREEN ③ ANALYTICS
+    // ==========================================
+    function getAnalyticsRange() {
+      const today = toLocalDateStr();
+      if (analyticsPeriod === 'week') return { start: addDays(today, -6), end: today, label: '直近7日間' };
+      if (analyticsPeriod === 'month') return { start: addDays(today, -29), end: today, label: '直近30日間' };
+      if (analyticsPeriod === 'quarter') return { start: addDays(today, -89), end: today, label: '直近3か月' };
+      if (analyticsPeriod === 'year') return { start: addDays(today, -364), end: today, label: '直近1年間' };
+      return {
+        start: analyticsCustomStart <= analyticsCustomEnd ? analyticsCustomStart : analyticsCustomEnd,
+        end: analyticsCustomStart <= analyticsCustomEnd ? analyticsCustomEnd : analyticsCustomStart,
+        label: '指定期間'
+      };
+    }
+
+    function renderAnalytics(container) {
+      const range = getAnalyticsRange();
+      const allInPeriod = appData.activities.filter(a => a.date >= range.start && a.date <= range.end);
+      const unconfirmedList = allInPeriod.filter(a => a.precision === 'unconfirmed');
+      const validActs = allInPeriod.filter(a => {
+        if (a.precision === 'unconfirmed') return false;
+        if (analyticsPrecisionFilter !== 'all' && a.precision !== analyticsPrecisionFilter) return false;
+        return true;
+      });
+
+      const weightsInPeriod = appData.weights
+        .filter(w => w.date >= range.start && w.date <= range.end)
+        .sort((a, b) => a.measuredAt.localeCompare(b.measuredAt));
+
+      const studyActs = validActs.filter(a => a.category === 'STUDY');
+      const exActs = validActs.filter(a => a.category === 'BODY' && a.item === '運動');
+      const readActs = validActs.filter(a => a.category === 'KNOWLEDGE');
+      const aiActs = validActs.filter(a => a.category === 'CREATE');
+
+      const sumMins = arr => arr.reduce((s, a) => s + Number(a.minutes || 0), 0);
+      const totalStudy = sumMins(studyActs);
+      const totalEx = sumMins(exActs);
+      const totalRead = sumMins(readActs);
+      const totalAi = sumMins(aiActs);
+
+      // Precision breakdown for Study
+      const byPrec = {
+        measured: sumMins(validActs.filter(a => a.precision === 'measured')),
+        manual: sumMins(validActs.filter(a => a.precision === 'manual')),
+        approx: sumMins(validActs.filter(a => a.precision === 'approx'))
+      };
+
+      // Habit stats in period (only dates that have habitLogs)
+      const activeHabits = appData.habits.filter(h => h.active);
+      const loggedHabitDates = Object.keys(appData.habitLogs).filter(d => d >= range.start && d <= range.end);
+      let habitRateStr = '記録なし';
+      if (loggedHabitDates.length > 0 && activeHabits.length > 0) {
+        let checked = 0;
+        let possible = loggedHabitDates.length * activeHabits.length;
+        loggedHabitDates.forEach(d => {
+          activeHabits.forEach(h => {
+            if (appData.habitLogs[d]?.[h.id]) checked++;
+          });
+        });
+        habitRateStr = `${Math.round((checked / possible) * 100)}% (${loggedHabitDates.length}日分)`;
+      }
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h1 class="text-xl font-semibold">分析・進捗</h1>
+              <p class="text-xs" style="color: var(--text-muted)">${range.start} 〜 ${range.end}（記録のない日は推測・補完しません）</p>
+            </div>
+          </div>
+
+          <!-- Period & Precision Controls -->
+          <div class="card p-4 space-y-3">
+            <div class="flex flex-wrap gap-1.5">
+              ${[
+                { id: 'week', label: '週間' },
+                { id: 'month', label: '月間' },
+                { id: 'quarter', label: '3か月' },
+                { id: 'year', label: '年間' },
+                { id: 'custom', label: '期間指定' }
+              ].map(p => `
+                <button class="px-3 py-1.5 rounded-xl text-xs font-medium ${analyticsPeriod === p.id ? 'bg-blue-600 text-white' : 'card-elevated'}" onclick="analyticsPeriod='${p.id}'; renderView();">
+                  ${p.label}
+                </button>
+              `).join('')}
+            </div>
+
+            ${analyticsPeriod === 'custom' ? `
+              <div class="flex flex-wrap items-center gap-2 pt-1">
+                <input type="date" class="input-base w-auto text-xs" value="${analyticsCustomStart}" onchange="analyticsCustomStart=this.value; renderView();" />
+                <span class="text-xs">〜</span>
+                <input type="date" class="input-base w-auto text-xs" value="${analyticsCustomEnd}" onchange="analyticsCustomEnd=this.value; renderView();" />
+              </div>
+            ` : ''}
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t" style="border-color: var(--border-subtle)">
+              <div class="flex flex-wrap gap-1.5 pt-2">
+                ${[
+                  { id: 'all', label: 'すべて(実測+手入力+概算)' },
+                  { id: 'measured', label: '実測のみ' },
+                  { id: 'manual', label: '手入力のみ' },
+                  { id: 'approx', label: '概算のみ' }
+                ].map(f => `
+                  <button class="px-2.5 py-1 rounded-lg text-[11px] font-medium ${analyticsPrecisionFilter === f.id ? 'bg-emerald-600 text-white' : 'card-elevated'}" onclick="analyticsPrecisionFilter='${f.id}'; renderView();">
+                    ${f.label}
+                  </button>
+                `).join('')}
+              </div>
+              ${unconfirmedList.length > 0 ? `
+                <span class="text-[11px] px-2.5 py-1 rounded-lg bg-zinc-700/40 text-zinc-300 mt-2">
+                  未確認 ${unconfirmedList.length}件（集計除外中）
+                </span>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Summary KPI Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="card p-3.5">
+              <div class="text-[11px]" style="color: var(--text-muted)">勉強時間</div>
+              <div class="text-lg font-semibold tabular-nums mt-0.5">${studyActs.length ? formatMinutes(totalStudy) : '記録なし'}</div>
+            </div>
+            <div class="card p-3.5">
+              <div class="text-[11px]" style="color: var(--text-muted)">運動時間 / 回数</div>
+              <div class="text-lg font-semibold tabular-nums mt-0.5">${exActs.length ? `${formatMinutes(totalEx)} (${exActs.length}回)` : '記録なし'}</div>
+            </div>
+            <div class="card p-3.5">
+              <div class="text-[11px]" style="color: var(--text-muted)">読書・学習</div>
+              <div class="text-lg font-semibold tabular-nums mt-0.5">${readActs.length ? formatMinutes(totalRead) : '記録なし'}</div>
+            </div>
+            <div class="card p-3.5">
+              <div class="text-[11px]" style="color: var(--text-muted)">AI・制作時間</div>
+              <div class="text-lg font-semibold tabular-nums mt-0.5">${aiActs.length ? formatMinutes(totalAi) : '記録なし'}</div>
+            </div>
+            <div class="card p-3.5">
+              <div class="text-[11px]" style="color: var(--text-muted)">精度内訳(全活動)</div>
+              <div class="text-xs tabular-nums mt-1 space-y-0.5" style="color: var(--text-secondary)">
+                <div>実測: ${formatMinutes(byPrec.measured)}</div>
+                <div>手/概: ${formatMinutes(byPrec.manual + byPrec.approx)}</div>
+              </div>
+            </div>
+            <div class="card p-3.5">
+              <div class="text-[11px]" style="color: var(--text-muted)">習慣達成率</div>
+              <div class="text-base font-semibold tabular-nums mt-0.5">${habitRateStr}</div>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Study & Activity Stacked by Precision -->
+            <div class="card p-5 space-y-3">
+              <h3 class="text-sm font-semibold">活動時間の推移（実測 / 手入力 / 概算 別）</h3>
+              ${validActs.length === 0 ? `<div class="h-64 flex items-center justify-center text-xs" style="color: var(--text-muted)">この期間の活動記録はまだありません</div>` : `
+                <div class="relative h-64">
+                  <canvas id="chart-activity-precision"></canvas>
+                </div>
+              `}
+            </div>
+
+            <!-- Weight Trend Chart -->
+            <div class="card p-5 space-y-3">
+              <h3 class="text-sm font-semibold">体重推移（測定日のみ・補完なし）</h3>
+              ${weightsInPeriod.length === 0 ? `<div class="h-64 flex items-center justify-center text-xs" style="color: var(--text-muted)">この期間の体重記録はまだありません</div>` : `
+                <div class="relative h-64">
+                  <canvas id="chart-weight-trend"></canvas>
+                </div>
+              `}
+            </div>
+
+            <!-- Study by Subject -->
+            <div class="card p-5 space-y-3">
+              <h3 class="text-sm font-semibold">科目別 勉強時間</h3>
+              ${studyActs.length === 0 ? `<div class="h-64 flex items-center justify-center text-xs" style="color: var(--text-muted)">この期間の勉強記録はまだありません</div>` : `
+                <div class="relative h-64">
+                  <canvas id="chart-study-subjects"></canvas>
+                </div>
+              `}
+            </div>
+
+            <!-- Category Breakdown -->
+            <div class="card p-5 space-y-3">
+              <h3 class="text-sm font-semibold">カテゴリー別 時間配分</h3>
+              ${validActs.length === 0 ? `<div class="h-64 flex items-center justify-center text-xs" style="color: var(--text-muted)">この期間の記録はまだありません</div>` : `
+                <div class="relative h-64">
+                  <canvas id="chart-categories"></canvas>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Render charts if data exists
+      setTimeout(() => {
+        if (validActs.length > 0) {
+          buildActivityPrecisionChart(validActs, range);
+          buildCategoryChart(validActs);
+        }
+        if (studyActs.length > 0) {
+          buildSubjectChart(studyActs);
+        }
+        if (weightsInPeriod.length > 0) {
+          buildWeightChart(weightsInPeriod);
+        }
+      }, 0);
+    }
+
+    function buildActivityPrecisionChart(acts, range) {
+      const canvas = document.getElementById('chart-activity-precision');
+      if (!canvas) return;
+      // Group by recorded dates (sorted)
+      const dateSet = Array.from(new Set(acts.map(a => a.date))).sort();
+      const measuredData = dateSet.map(d => acts.filter(a => a.date === d && a.precision === 'measured').reduce((s, a) => s + a.minutes, 0));
+      const manualData = dateSet.map(d => acts.filter(a => a.date === d && a.precision === 'manual').reduce((s, a) => s + a.minutes, 0));
+      const approxData = dateSet.map(d => acts.filter(a => a.date === d && a.precision === 'approx').reduce((s, a) => s + a.minutes, 0));
+
+      chartInstances.actPrec = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: dateSet.map(d => d.slice(5)),
+          datasets: [
+            { label: '実測', data: measuredData, backgroundColor: '#3b82f6', borderRadius: 4 },
+            { label: '手入力', data: manualData, backgroundColor: '#10b981', borderRadius: 4 },
+            { label: '概算', data: approxData, backgroundColor: '#f59e0b', borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, ticks: { color: '#a1a1aa', font: { size: 11 } }, grid: { display: false } },
+            y: { stacked: true, ticks: { color: '#a1a1aa', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+          },
+          plugins: {
+            legend: { labels: { color: '#d4d4d8', boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    function buildWeightChart(weights) {
+      const canvas = document.getElementById('chart-weight-trend');
+      if (!canvas) return;
+      const labels = weights.map(w => w.date.slice(5));
+      const values = weights.map(w => w.weightKg);
+      const targetLine = weights.map(() => appData.settings.targetWeightKg);
+
+      chartInstances.weight = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '測定体重 (kg)',
+              data: values,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.12)',
+              tension: 0.2,
+              pointRadius: 4,
+              fill: true
+            },
+            {
+              label: '目標体重 (kg)',
+              data: targetLine,
+              borderColor: 'rgba(245, 158, 11, 0.7)',
+              borderDash: [5, 5],
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#a1a1aa', font: { size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: '#a1a1aa', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+          },
+          plugins: {
+            legend: { labels: { color: '#d4d4d8', boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    function buildSubjectChart(studyActs) {
+      const canvas = document.getElementById('chart-study-subjects');
+      if (!canvas) return;
+      const map = {};
+      studyActs.forEach(a => {
+        map[a.item] = (map[a.item] || 0) + a.minutes;
+      });
+      const labels = Object.keys(map);
+      const data = Object.values(map);
+      const palette = ['#3b82f6', '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#64748b'];
+
+      chartInstances.subject = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: '勉強時間 (分)',
+            data,
+            backgroundColor: labels.map((_, i) => palette[i % palette.length]),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#a1a1aa', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.06)' } },
+            y: { ticks: { color: '#d4d4d8', font: { size: 11 } }, grid: { display: false } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function buildCategoryChart(acts) {
+      const canvas = document.getElementById('chart-categories');
+      if (!canvas) return;
+      const map = {};
+      acts.forEach(a => {
+        map[a.category] = (map[a.category] || 0) + a.minutes;
+      });
+      const keys = Object.keys(map);
+      chartInstances.cat = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: keys.map(k => CATEGORY_META[k]?.jp || k),
+          datasets: [{
+            data: keys.map(k => map[k]),
+            backgroundColor: keys.map(k => CATEGORY_META[k]?.color || '#71717a'),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: { position: 'right', labels: { color: '#d4d4d8', boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // 11. SCREEN ④ CALENDAR
+    // ==========================================
+    function renderCalendar(container) {
+      const year = calendarMonth.getFullYear();
+      const month = calendarMonth.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const startDow = firstDay.getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = toLocalDateStr();
+
+      const cells = [];
+      for (let i = 0; i < startDow; i++) cells.push(null);
+      for (let d = 1; d <= daysInMonth; d++) {
+        cells.push(`${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+      }
+
+      const selActs = appData.activities.filter(a => a.date === selectedCalendarDate);
+      const selWeights = appData.weights.filter(w => w.date === selectedCalendarDate);
+      const selRest = appData.confirmedRestDays[selectedCalendarDate];
+      const selHabitSum = getTodayHabitSummary(selectedCalendarDate);
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="card p-4 sm:p-5 space-y-4">
+            <!-- Month Header -->
+            <div class="flex items-center justify-between">
+              <h1 class="text-lg font-semibold tabular-nums">${year}年 ${month + 1}月</h1>
+              <div class="flex items-center gap-1.5">
+                <button class="btn-tap px-3 py-1.5 card-elevated text-xs" onclick="calendarMonth = new Date(${year}, ${month - 1}, 1); renderView();">前月</button>
+                <button class="btn-tap px-3 py-1.5 card-elevated text-xs" onclick="calendarMonth = new Date(); selectedCalendarDate='${today}'; renderView();">今月</button>
+                <button class="btn-tap px-3 py-1.5 card-elevated text-xs" onclick="calendarMonth = new Date(${year}, ${month + 1}, 1); renderView();">次月</button>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap gap-3 text-[11px]" style="color: var(--text-muted)">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span>勉強</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>運動</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span>体重</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-violet-500"></span>読書</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-500"></span>AI開発</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span>習慣</span>
+            </div>
+
+            <!-- Weekdays -->
+            <div class="grid grid-cols-7 text-center text-[11px] font-medium" style="color: var(--text-muted)">
+              <div class="text-rose-400">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="text-blue-400">土</div>
+            </div>
+
+            <!-- Days Grid -->
+            <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
+              ${cells.map(dateStr => {
+                if (!dateStr) return `<div class="h-14 sm:h-16"></div>`;
+                const dayNum = Number(dateStr.slice(8, 10));
+                const isSel = dateStr === selectedCalendarDate;
+                const isToday = dateStr === today;
+                const dActs = appData.activities.filter(a => a.date === dateStr);
+                const dW = appData.weights.some(w => w.date === dateStr);
+                const dHabit = Object.values(appData.habitLogs[dateStr] || {}).some(Boolean);
+                const isRest = Boolean(appData.confirmedRestDays[dateStr]?.all);
+
+                const dots = [];
+                if (dActs.some(a => a.category === 'STUDY')) dots.push('#3b82f6');
+                if (dActs.some(a => a.category === 'BODY' && a.item === '運動')) dots.push('#10b981');
+                if (dW) dots.push('#f59e0b');
+                if (dActs.some(a => a.category === 'KNOWLEDGE')) dots.push('#8b5cf6');
+                if (dActs.some(a => a.category === 'CREATE')) dots.push('#06b6d4');
+                if (dHabit) dots.push('#f43f5e');
+
+                return `
+                  <button class="h-14 sm:h-16 rounded-xl p-1.5 flex flex-col items-center justify-between transition-all ${isSel ? 'bg-blue-600/20 ring-1 ring-blue-500' : 'card-elevated'} ${isToday && !isSel ? 'ring-1 ring-zinc-500' : ''}" onclick="selectedCalendarDate='${dateStr}'; renderView();">
+                    <span class="text-xs tabular-nums ${isToday ? 'font-bold text-blue-400' : ''}">${dayNum}</span>
+                    <div class="flex items-center justify-center gap-0.5 flex-wrap">
+                      ${dots.length > 0
+                        ? dots.map(c => `<span class="w-1.5 h-1.5 rounded-full" style="background-color:${c}"></span>`).join('')
+                        : isRest
+                          ? `<span class="text-[10px] px-1 rounded bg-zinc-700/50" style="color: var(--text-muted)">休</span>`
+                          : ''
+                      }
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Selected Date Detail -->
+          <div class="card p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-base font-semibold">${formatJapaneseDate(selectedCalendarDate)}</h2>
+                <p class="text-xs" style="color: var(--text-muted)">
+                  ${selActs.length === 0 && selWeights.length === 0
+                    ? (selRest?.all ? '活動なし（確認済み・休息日）' : '未記録（記録漏れがあれば後から追加できます）')
+                    : `活動 ${selActs.length}件 ・ 体重 ${selWeights.length}件 ・ 習慣 ${selHabitSum.completed}/${selHabitSum.total}`
+                  }
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button class="btn-tap px-3 py-1.5 card-elevated text-xs" onclick="toggleConfirmedRestDay('${selectedCalendarDate}')">
+                  ${selRest?.all ? '休息日マーク解除' : '活動なしとして確定'}
+                </button>
+                <button class="btn-tap px-3 py-1.5 bg-blue-600 text-white text-xs" onclick="openRetroactiveModal('${selectedCalendarDate}')">
+                  + この日に記録を追加
+                </button>
+              </div>
+            </div>
+
+            ${selWeights.length > 0 ? `
+              <div class="space-y-1.5">
+                <div class="text-xs font-medium" style="color: var(--text-secondary)">体重・体調</div>
+                ${selWeights.map(w => `
+                  <div class="p-3 rounded-xl card-elevated flex items-center justify-between">
+                    <div class="text-sm font-medium tabular-nums">${w.weightKg.toFixed(1)} kg <span class="text-xs font-normal" style="color: var(--text-muted)">(${w.measuredAt.slice(11,16)}) ${escHtml(w.note)}</span></div>
+                    <button class="text-xs text-rose-400" onclick="confirmDeleteWeight('${w.id}')">削除</button>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            <div class="space-y-1.5">
+              <div class="text-xs font-medium" style="color: var(--text-secondary)">活動記録</div>
+              ${renderActivityList(selActs)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleConfirmedRestDay(dateStr) {
+      if (!appData.confirmedRestDays[dateStr]) {
+        appData.confirmedRestDays[dateStr] = { all: true };
+        showToast(`${dateStr} を「活動なし（確認済み）」に設定しました`, 'info');
+      } else {
+        appData.confirmedRestDays[dateStr].all = !appData.confirmedRestDays[dateStr].all;
+      }
+      persistData();
+      renderView();
+    }
+
+    // ==========================================
+    // 12. SCREEN ⑤ SETTINGS
+    // ==========================================
+    function renderSettings(container) {
+      const s = appData.settings;
+      const isNotificationSupported = 'Notification' in window;
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <h1 class="text-xl font-semibold">設定・データ管理</h1>
+
+          <!-- Body & Goal Settings -->
+          <div class="card p-5 space-y-4">
+            <h2 class="text-sm font-semibold">身長・目標体重</h2>
+            <form class="grid grid-cols-1 sm:grid-cols-3 gap-3" onsubmit="saveBodySettings(event)">
+              <div>
+                <label class="block text-xs mb-1" style="color: var(--text-secondary)">身長 (cm)</label>
+                <input id="set-height" type="number" step="0.1" class="input-base tabular-nums" value="${s.heightCm}" required />
+              </div>
+              <div>
+                <label class="block text-xs mb-1" style="color: var(--text-secondary)">初期体重 (kg)</label>
+                <input id="set-start-w" type="number" step="0.1" class="input-base tabular-nums" value="${s.startWeightKg}" required />
+              </div>
+              <div>
+                <label class="block text-xs mb-1" style="color: var(--text-secondary)">目標体重 (kg)</label>
+                <input id="set-target-w" type="number" step="0.1" class="input-base tabular-nums" value="${s.targetWeightKg}" required />
+              </div>
+              <div class="sm:col-span-3">
+                <button type="submit" class="btn-tap px-5 bg-blue-600 text-white text-xs font-semibold">目標を保存</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Theme & Assist -->
+          <div class="card p-5 space-y-4">
+            <h2 class="text-sm font-semibold">外観・記録アシスト</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">テーマ設定</label>
+                <div class="flex gap-2">
+                  ${[
+                    { id: 'dark', label: 'ダーク' },
+                    { id: 'oled', label: 'OLED黒' },
+                    { id: 'light', label: 'ライト' }
+                  ].map(t => `
+                    <button class="btn-tap flex-1 text-xs ${s.theme === t.id ? 'bg-blue-600 text-white' : 'card-elevated'}" onclick="appData.settings.theme='${t.id}'; applyTheme(); persistData(); renderView();">${t.label}</button>
+                  `).join('')}
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs mb-1.5" style="color: var(--text-secondary)">毎日の振り返り時刻（アプリ内アシスト）</label>
+                <div class="flex items-center gap-2">
+                  <input type="time" class="input-base w-auto text-sm" value="${s.assistTime}" onchange="appData.settings.assistTime=this.value; persistData(); showToast('振り返り時刻を更新しました');" />
+                  <button class="btn-tap px-3 text-xs ${s.assistEnabled ? 'bg-emerald-600 text-white' : 'card-elevated'}" onclick="appData.settings.assistEnabled=!appData.settings.assistEnabled; persistData(); renderView();">
+                    ${s.assistEnabled ? 'ON' : 'OFF'}
+                  </button>
+                </div>
+                <p class="text-[11px] mt-1.5" style="color: var(--text-muted)">
+                  ${isNotificationSupported ? '通知が制限される環境ではHOME画面の振り返りカードで代替します。' : 'このブラウザ環境ではアプリ内振り返りカードで通知します。'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customize Subjects, Exercise, Habits -->
+          <div class="card p-5 space-y-4">
+            <h2 class="text-sm font-semibold">カテゴリー・項目のカスタマイズ</h2>
+            <div class="space-y-4">
+              ${renderEditableList('勉強科目 (STUDY)', appData.categories.STUDY, 'STUDY')}
+              ${renderEditableList('運動メニュー', appData.exerciseMenu, 'EXERCISE')}
+              ${renderEditableHabitsList()}
+            </div>
+          </div>
+
+          <!-- AI Future Extension Module (Honest Unconnected State) -->
+          <div class="card p-5 space-y-3 border-cyan-500/20">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="bot" class="w-4 h-4 text-cyan-400"></i>
+                <h2 class="text-sm font-semibold">AIアシスタント機能（将来拡張モジュール）</h2>
+              </div>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-zinc-700/60 text-zinc-300">未接続（ローカル動作）</span>
+            </div>
+            <p class="text-xs leading-relaxed" style="color: var(--text-secondary)">
+              週間・月間振り返り、勉強と運動のバランス分析、体重推移の説明、習慣改善提案、自然言語による記録補助などの将来拡張に対応したデータ構造（APIキー非保持設計）を備えています。現在は外部AI APIに未接続のため、代わりに記録データをAI相談用プロンプトとしてコピーできます。
+            </p>
+            <button class="btn-tap px-4 card-elevated text-xs text-cyan-400" onclick="copyAISummaryPrompt()">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>直近7日間のAI振り返り用サマリーをコピー</span>
+            </button>
+          </div>
+
+          <!-- Data Persistence, Export, Backup, Restore, Demo & Wipe -->
+          <div class="card p-5 space-y-4">
+            <h2 class="text-sm font-semibold">データ保存・バックアップ・出力</h2>
+            <div class="p-3.5 rounded-xl card-elevated text-xs space-y-1" style="color: var(--text-secondary)">
+              <div class="font-semibold text-zinc-200">現在の保存方式: ブラウザ端末内保存 (localStorage)</div>
+              <p>ブラウザを閉じても再読み込みしてもデータは保持されますが、ブラウザのサイトデータ消去や端末変更で失われるリスクがあります。定期的なJSONバックアップを推奨します（将来のクラウド同期拡張に対応可能なJSONスキーマを採用）。</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button class="btn-tap card-elevated text-xs" onclick="exportCSV()">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+                <span>CSV出力 (活動・体重)</span>
+              </button>
+              <button class="btn-tap card-elevated text-xs" onclick="exportJSONBackup()">
+                <i data-lucide="download" class="w-4 h-4 text-blue-400"></i>
+                <span>JSONバックアップ保存</span>
+              </button>
+              <label class="btn-tap card-elevated text-xs cursor-pointer">
+                <i data-lucide="upload" class="w-4 h-4 text-amber-400"></i>
+                <span>JSONバックアップから復元</span>
+                <input type="file" accept=".json" class="hidden" onchange="importJSONBackup(event)" />
+              </label>
+              <button class="btn-tap card-elevated text-xs" onclick="toggleDemoData()">
+                <i data-lucide="flask-conical" class="w-4 h-4 text-violet-400"></i>
+                <span>${appData.activities.some(a => a.isDemo) ? 'DEMOデータを消去' : 'DEMO用サンプルデータを試す'}</span>
+              </button>
+            </div>
+
+            <div class="pt-3 border-t" style="border-color: var(--border-subtle)">
+              <button class="btn-tap w-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-xs font-semibold" onclick="confirmWipeAllData()">
+                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                <span>全データを削除する</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderEditableList(title, items, type) {
+      return `
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium" style="color: var(--text-secondary)">${title}</span>
+            <button class="text-xs text-blue-400" onclick="openAddCustomTagModal('${type}')">+ 追加</button>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            ${items.map((item, idx) => `
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-elevated text-xs">
+                <span>${escHtml(item)}</span>
+                ${items.length > 1 ? `<button class="text-zinc-500 hover:text-rose-400" onclick="removeCustomTag('${type}', ${idx})">&times;</button>` : ''}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderEditableHabitsList() {
+      return `
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium" style="color: var(--text-secondary)">習慣項目</span>
+            <button class="text-xs text-blue-400" onclick="openAddHabitModal()">+ 習慣を追加</button>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            ${appData.habits.map((h, idx) => `
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg card-elevated text-xs">
+                <span>${escHtml(h.name)}</span>
+                <button class="text-zinc-500 hover:text-rose-400" onclick="removeHabit(${idx})">&times;</button>
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function saveBodySettings(e) {
+      e.preventDefault();
+      appData.settings.heightCm = parseFloat(document.getElementById('set-height').value) || 180;
+      appData.settings.startWeightKg = parseFloat(document.getElementById('set-start-w').value) || 85.2;
+      appData.settings.targetWeightKg = parseFloat(document.getElementById('set-target-w').value) || 75.0;
+      persistData();
+      showToast('身長・目標体重を保存しました');
+    }
+
+    // ==========================================
+    // 13. SHARED ACTIVITY LIST & MODALS
+    // ==========================================
+    function renderActivityList(list) {
+      if (!list || list.length === 0) {
+        return `<p class="text-xs py-2" style="color: var(--text-muted)">記録はありません</p>`;
+      }
+      return `
+        <div class="space-y-2">
+          ${list.map(a => {
+            const cat = CATEGORY_META[a.category] || CATEGORY_META.OTHER;
+            const prec = PRECISION_META[a.precision] || PRECISION_META.approx;
+            return `
+              <div class="p-3 rounded-xl card-elevated flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md" style="background:${cat.bg}; color:${cat.color}">${cat.jp}</span>
+                    <span class="text-sm font-medium truncate">${escHtml(a.item)}</span>
+                    <span class="text-sm font-semibold tabular-nums">${a.minutes}分</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md" style="background:${prec.bg}; color:${prec.color}">${prec.label}</span>
+                    ${a.isDemo ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">DEMO</span>` : ''}
+                  </div>
+                  <div class="text-[11px] mt-0.5 truncate" style="color: var(--text-muted)">
+                    ${a.date} ${a.startTime ? a.startTime : ''} ${a.memo ? `・ ${escHtml(a.memo)}` : ''}
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button class="p-2 rounded-lg hover:bg-white/5 text-zinc-400" onclick="openEditActivityModal('${a.id}')" title="編集">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                  </button>
+                  <button class="p-2 rounded-lg hover:bg-rose-500/10 text-rose-400" onclick="confirmDeleteActivity('${a.id}')" title="削除">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function openQuickWeightModal() {
+      const latest = getLatestWeightInfo();
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold">体重をクイック記録</h3>
+            <button onclick="closeModal()" class="text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form class="space-y-3" onsubmit="submitQuickWeightModal(event)">
+            <div class="flex items-center gap-2">
+              <button type="button" class="btn-tap px-4 card-elevated" onclick="const el=document.getElementById('qw-kg'); el.value=(parseFloat(el.value)-0.1).toFixed(1)">-0.1</button>
+              <input id="qw-kg" type="number" step="0.1" class="input-base text-center text-xl font-semibold tabular-nums" value="${latest.weightKg.toFixed(1)}" required />
+              <button type="button" class="btn-tap px-4 card-elevated" onclick="const el=document.getElementById('qw-kg'); el.value=(parseFloat(el.value)+0.1).toFixed(1)">+0.1</button>
+            </div>
+            <input id="qw-note" type="text" class="input-base text-sm" placeholder="体調メモ（任意）" />
+            <button type="submit" class="btn-tap w-full bg-emerald-600 text-white font-semibold py-3">保存する</button>
+          </form>
+        </div>
+      `);
+    }
+
+    function submitQuickWeightModal(e) {
+      e.preventDefault();
+      const kg = parseFloat(document.getElementById('qw-kg').value);
+      const note = document.getElementById('qw-note').value.trim();
+      const dt = toLocalDateTimeStr();
+      appData.weights.unshift({
+        id: genId('wt'),
+        date: dt.slice(0, 10),
+        measuredAt: dt,
+        weightKg: +kg.toFixed(1),
+        bodyFatPct: null,
+        sleepHours: null,
+        note,
+        isDemo: false,
+        createdAt: new Date().toISOString()
+      });
+      persistData();
+      closeModal();
+      renderView();
+      showToast(`体重 ${kg.toFixed(1)}kg を記録しました`);
+    }
+
+    function openQuickExerciseModal() {
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold">運動をクイック記録</h3>
+            <button onclick="closeModal()" class="text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form class="space-y-3" onsubmit="submitQuickExerciseModal(event)">
+            <select id="qe-menu" class="input-base">
+              ${appData.exerciseMenu.map(m => `<option value="${escHtml(m)}">${escHtml(m)}</option>`).join('')}
+            </select>
+            <div class="flex flex-wrap gap-1.5">
+              ${[10, 15, 20, 30, 45, 60].map(m => `<button type="button" class="px-3 py-1.5 rounded-lg card-elevated text-xs tabular-nums" onclick="document.getElementById('qe-min').value=${m}">${m}分</button>`).join('')}
+            </div>
+            <input id="qe-min" type="number" min="1" class="input-base tabular-nums" value="20" required />
+            <button type="submit" class="btn-tap w-full bg-emerald-600 text-white font-semibold py-3">保存する（概算）</button>
+          </form>
+        </div>
+      `);
+    }
+
+    function submitQuickExerciseModal(e) {
+      e.preventDefault();
+      const exName = document.getElementById('qe-menu').value;
+      const mins = parseInt(document.getElementById('qe-min').value, 10);
+      appData.activities.unshift({
+        id: genId('act'),
+        date: toLocalDateStr(),
+        startTime: '',
+        category: 'BODY',
+        item: '運動',
+        exerciseName: exName,
+        minutes: mins,
+        precision: 'approx',
+        memo: `[${exName}]`,
+        isDemo: false,
+        createdAt: new Date().toISOString()
+      });
+      persistData();
+      closeModal();
+      renderView();
+      showToast(`${exName}（${mins}分・概算）を記録しました`);
+    }
+
+    function openRetroactiveModal(defaultDate = addDays(toLocalDateStr(), -1), defaultCat = 'STUDY', defaultItem = '') {
+      const items = appData.categories[defaultCat] || ['その他'];
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold">後から記録（概算・過去日）</h3>
+            <button onclick="closeModal()" class="text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form class="space-y-3" onsubmit="submitRetroModal(event)">
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-xs mb-1" style="color: var(--text-secondary)">日付</label>
+                <input id="rm-date" type="date" class="input-base" value="${defaultDate}" required />
+              </div>
+              <div>
+                <label class="block text-xs mb-1" style="color: var(--text-secondary)">カテゴリー</label>
+                <select id="rm-cat" class="input-base" onchange="updateRetroModalItems(this.value)">
+                  ${Object.keys(CATEGORY_META).map(c => `<option value="${c}" ${c === defaultCat ? 'selected' : ''}>${CATEGORY_META[c].jp}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs mb-1" style="color: var(--text-secondary)">項目</label>
+              <select id="rm-item" class="input-base">
+                ${items.map(it => `<option value="${escHtml(it)}" ${it === defaultItem ? 'selected' : ''}>${escHtml(it)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs mb-1" style="color: var(--text-secondary)">おおよその時間（分）</label>
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                ${[15, 30, 45, 60, 90].map(m => `<button type="button" class="px-2.5 py-1 rounded-lg card-elevated text-xs tabular-nums" onclick="document.getElementById('rm-min').value=${m}">${m}分</button>`).join('')}
+              </div>
+              <input id="rm-min" type="number" min="1" class="input-base tabular-nums" value="30" required />
+            </div>
+            <div>
+              <label class="block text-xs mb-1" style="color: var(--text-secondary)">記録精度</label>
+              <select id="rm-prec" class="input-base">
+                <option value="approx" selected>概算（おおよその時間）</option>
+                <option value="manual">手入力（時計で確認）</option>
+                <option value="unconfirmed">未確認（活動したか不明）</option>
+              </select>
+            </div>
+            <input id="rm-memo" type="text" class="input-base text-sm" placeholder="メモ（任意）" />
+            <button type="submit" class="btn-tap w-full bg-blue-600 text-white font-semibold py-3">記録を追加</button>
+          </form>
+        </div>
+      `);
+    }
+
+    function updateRetroModalItems(cat) {
+      const sel = document.getElementById('rm-item');
+      if (!sel) return;
+      const items = appData.categories[cat] || ['その他'];
+      sel.innerHTML = items.map(it => `<option value="${escHtml(it)}">${escHtml(it)}</option>`).join('');
+    }
+
+    function submitRetroModal(e) {
+      e.preventDefault();
+      const date = document.getElementById('rm-date').value;
+      const category = document.getElementById('rm-cat').value;
+      const item = document.getElementById('rm-item').value;
+      const minutes = parseInt(document.getElementById('rm-min').value, 10);
+      const precision = document.getElementById('rm-prec').value;
+      const memo = document.getElementById('rm-memo').value.trim();
+
+      appData.activities.unshift({
+        id: genId('act'),
+        date,
+        startTime: '',
+        category,
+        item,
+        minutes,
+        precision,
+        memo,
+        isDemo: false,
+        createdAt: new Date().toISOString()
+      });
+      persistData();
+      closeModal();
+      renderView();
+      showToast(`${date} の ${item}（${minutes}分）を追加しました`);
+    }
+
+    function openEditActivityModal(id) {
+      const act = appData.activities.find(a => a.id === id);
+      if (!act) return;
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold">記録を編集</h3>
+            <button onclick="closeModal()" class="text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form class="space-y-3" onsubmit="saveEditedActivity(event, '${id}')">
+            <input id="ea-date" type="date" class="input-base" value="${act.date}" required />
+            <input id="ea-item" type="text" class="input-base" value="${escHtml(act.item)}" required />
+            <input id="ea-min" type="number" min="1" class="input-base tabular-nums" value="${act.minutes}" required />
+            <select id="ea-prec" class="input-base">
+              ${Object.entries(PRECISION_META).map(([k, m]) => `<option value="${k}" ${act.precision === k ? 'selected' : ''}>${m.label} (${m.desc})</option>`).join('')}
+            </select>
+            <input id="ea-memo" type="text" class="input-base" value="${escHtml(act.memo || '')}" placeholder="メモ" />
+            <button type="submit" class="btn-tap w-full bg-blue-600 text-white font-semibold py-3">更新する</button>
+          </form>
+        </div>
+      `);
+    }
+
+    function saveEditedActivity(e, id) {
+      e.preventDefault();
+      const act = appData.activities.find(a => a.id === id);
+      if (!act) return;
+      act.date = document.getElementById('ea-date').value;
+      act.item = document.getElementById('ea-item').value.trim();
+      act.minutes = parseInt(document.getElementById('ea-min').value, 10);
+      act.precision = document.getElementById('ea-prec').value;
+      act.memo = document.getElementById('ea-memo').value.trim();
+      persistData();
+      closeModal();
+      renderView();
+      showToast('記録を更新しました');
+    }
+
+    function confirmDeleteActivity(id) {
+      openModal(`
+        <div class="space-y-4">
+          <h3 class="text-base font-semibold">この記録を削除しますか？</h3>
+          <div class="flex gap-3">
+            <button class="btn-tap flex-1 card-elevated text-sm" onclick="closeModal()">キャンセル</button>
+            <button class="btn-tap flex-1 bg-rose-600 text-white text-sm" onclick="appData.activities=appData.activities.filter(a=>a.id!=='${id}'); persistData(); closeModal(); renderView(); showToast('削除しました', 'info');">削除</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function openEditWeightModal(id) {
+      const w = appData.weights.find(x => x.id === id);
+      if (!w) return;
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold">体重記録を編集</h3>
+            <button onclick="closeModal()" class="text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <form class="space-y-3" onsubmit="saveEditedWeight(event, '${id}')">
+            <input id="ew-kg" type="number" step="0.1" class="input-base tabular-nums" value="${w.weightKg}" required />
+            <input id="ew-dt" type="datetime-local" class="input-base" value="${w.measuredAt.slice(0,16)}" required />
+            <input id="ew-note" type="text" class="input-base" value="${escHtml(w.note || '')}" placeholder="メモ" />
+            <button type="submit" class="btn-tap w-full bg-emerald-600 text-white font-semibold py-3">更新する</button>
+          </form>
+        </div>
+      `);
+    }
+
+    function saveEditedWeight(e, id) {
+      e.preventDefault();
+      const w = appData.weights.find(x => x.id === id);
+      if (!w) return;
+      w.weightKg = +parseFloat(document.getElementById('ew-kg').value).toFixed(1);
+      w.measuredAt = document.getElementById('ew-dt').value;
+      w.date = w.measuredAt.slice(0, 10);
+      w.note = document.getElementById('ew-note').value.trim();
+      persistData();
+      closeModal();
+      renderView();
+      showToast('体重記録を更新しました');
+    }
+
+    function confirmDeleteWeight(id) {
+      openModal(`
+        <div class="space-y-4">
+          <h3 class="text-base font-semibold">この体重記録を削除しますか？</h3>
+          <div class="flex gap-3">
+            <button class="btn-tap flex-1 card-elevated text-sm" onclick="closeModal()">キャンセル</button>
+            <button class="btn-tap flex-1 bg-rose-600 text-white text-sm" onclick="appData.weights=appData.weights.filter(w=>w.id!=='${id}'); persistData(); closeModal(); renderView(); showToast('削除しました', 'info');">削除</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function openQuickAddItemModal(cat) {
+      openAddCustomTagModal(cat);
+    }
+
+    function openAddCustomTagModal(type) {
+      openModal(`
+        <div class="space-y-4">
+          <h3 class="text-base font-semibold">新しい項目を追加</h3>
+          <form class="space-y-3" onsubmit="submitCustomTag(event, '${type}')">
+            <input id="new-tag-name" type="text" class="input-base" placeholder="項目名を入力" required autofocus />
+            <div class="flex gap-2">
+              <button type="button" class="btn-tap flex-1 card-elevated text-sm" onclick="closeModal()">キャンセル</button>
+              <button type="submit" class="btn-tap flex-1 bg-blue-600 text-white text-sm">追加</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    function submitCustomTag(e, type) {
+      e.preventDefault();
+      const val = document.getElementById('new-tag-name').value.trim();
+      if (!val) return;
+      if (type === 'EXERCISE') {
+        if (!appData.exerciseMenu.includes(val)) appData.exerciseMenu.push(val);
+      } else {
+        if (!appData.categories[type].includes(val)) appData.categories[type].push(val);
+      }
+      persistData();
+      closeModal();
+      renderView();
+      showToast(`「${val}」を追加しました`);
+    }
+
+    function removeCustomTag(type, idx) {
+      if (type === 'EXERCISE') appData.exerciseMenu.splice(idx, 1);
+      else appData.categories[type].splice(idx, 1);
+      persistData();
+      renderView();
+    }
+
+    function openAddHabitModal() {
+      openModal(`
+        <div class="space-y-4">
+          <h3 class="text-base font-semibold">新しい習慣を追加</h3>
+          <form class="space-y-3" onsubmit="submitNewHabit(event)">
+            <input id="new-habit-name" type="text" class="input-base" placeholder="例: 毎日英単語10個" required autofocus />
+            <div class="flex gap-2">
+              <button type="button" class="btn-tap flex-1 card-elevated text-sm" onclick="closeModal()">キャンセル</button>
+              <button type="submit" class="btn-tap flex-1 bg-blue-600 text-white text-sm">追加</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    function submitNewHabit(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-habit-name').value.trim();
+      if (!name) return;
+      appData.habits.push({ id: genId('hab'), name, active: true });
+      persistData();
+      closeModal();
+      renderView();
+      showToast(`習慣「${name}」を追加しました`);
+    }
+
+    function removeHabit(idx) {
+      appData.habits.splice(idx, 1);
+      persistData();
+      renderView();
+    }
+
+    // ==========================================
+    // 14. EXPORT, BACKUP, RESTORE, DEMO & WIPE
+    // ==========================================
+    function exportCSV() {
+      const lines = ['種別,日付,時刻,カテゴリー,項目,時間(分),精度,体重(kg),体脂肪率(%),メモ'];
+      appData.activities.forEach(a => {
+        lines.push([
+          '活動', a.date, a.startTime || '', a.category, a.item, a.minutes,
+          PRECISION_META[a.precision]?.label || a.precision, '', '',
+          `"${(a.memo || '').replace(/"/g, '""')}"`
+        ].join(','));
+      });
+      appData.weights.forEach(w => {
+        lines.push([
+          '体重', w.date, w.measuredAt.slice(11, 16), 'BODY', '体重測定', '', '実測',
+          w.weightKg, w.bodyFatPct || '',
+          `"${(w.note || '').replace(/"/g, '""')}"`
+        ].join(','));
+      });
+      const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      downloadBlob(blob, `lifelog_export_${toLocalDateStr()}.csv`);
+      showToast('CSVファイルを出力しました');
+    }
+
+    function exportJSONBackup() {
+      const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+      downloadBlob(blob, `lifelog_backup_${toLocalDateStr()}.json`);
+      showToast('JSONバックアップを保存しました');
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function importJSONBackup(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.activities) || !Array.isArray(parsed.weights)) {
+            showToast('LIFELOGのバックアップ形式ではありません', 'error');
+            return;
+          }
+          openModal(`
+            <div class="space-y-4">
+              <h3 class="text-base font-semibold">バックアップを復元しますか？</h3>
+              <p class="text-xs" style="color: var(--text-secondary)">現在のデータは上書きされます。（活動 ${parsed.activities.length}件・体重 ${parsed.weights.length}件）</p>
+              <div class="flex gap-2">
+                <button class="btn-tap flex-1 card-elevated text-sm" onclick="closeModal()">キャンセル</button>
+                <button class="btn-tap flex-1 bg-amber-600 text-white text-sm" onclick="applyRestoredData()">復元する</button>
+              </div>
+            </div>
+          `);
+          window._pendingRestore = parsed;
+        } catch (err) {
+          showToast('JSONの読み込みに失敗しました', 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function applyRestoredData() {
+      if (!window._pendingRestore) return;
+      appData = Object.assign(getDefaultData(), window._pendingRestore);
+      window._pendingRestore = null;
+      persistData();
+      applyTheme();
+      closeModal();
+      renderView();
+      showToast('バックアップからデータを復元しました');
+    }
+
+    function confirmWipeAllData() {
+      openModal(`
+        <div class="space-y-4">
+          <h3 class="text-base font-semibold text-rose-400">全データを削除しますか？</h3>
+          <p class="text-xs" style="color: var(--text-secondary)">すべての記録・体重履歴・カスタム項目が完全に削除されます。この操作は取り消せません。</p>
+          <input id="wipe-confirm-input" type="text" class="input-base text-sm" placeholder="確認のため DELETE と入力" />
+          <div class="flex gap-2">
+            <button class="btn-tap flex-1 card-elevated text-sm" onclick="closeModal()">キャンセル</button>
+            <button class="btn-tap flex-1 bg-rose-600 text-white text-sm" onclick="executeWipeAllData()">完全削除</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function executeWipeAllData() {
+      const val = document.getElementById('wipe-confirm-input')?.value.trim();
+      if (val !== 'DELETE') {
+        showToast('確認文字 DELETE を入力してください', 'error');
+        return;
+      }
+      appData = getDefaultData();
+      resetTimerState();
+      persistData();
+      applyTheme();
+      closeModal();
+      renderView();
+      showToast('全データを削除しました', 'info');
+    }
+
+    function toggleDemoData() {
+      const hasDemo = appData.activities.some(a => a.isDemo) || appData.weights.some(w => w.isDemo);
+      if (hasDemo) {
+        appData.activities = appData.activities.filter(a => !a.isDemo);
+        appData.weights = appData.weights.filter(w => !w.isDemo);
+        persistData();
+        renderView();
+        showToast('DEMOデータを消去しました', 'info');
+        return;
+      }
+
+      const today = toLocalDateStr();
+      const demoActs = [
+        { date: addDays(today, -5), category: 'STUDY', item: '英語', minutes: 45, precision: 'measured', memo: 'リスニング・単語' },
+        { date: addDays(today, -5), category: 'BODY', item: '運動', minutes: 25, precision: 'approx', memo: '[ウォーキング]' },
+        { date: addDays(today, -4), category: 'CREATE', item: 'AI開発', minutes: 60, precision: 'measured', memo: 'プロンプト設計' },
+        { date: addDays(today, -3), category: 'STUDY', item: '数学', minutes: 50, precision: 'measured', memo: '微積演習' },
+        { date: addDays(today, -3), category: 'KNOWLEDGE', item: '読書', minutes: 20, precision: 'approx', memo: '技術書' },
+        { date: addDays(today, -2), category: 'BODY', item: '運動', minutes: 30, precision: 'manual', memo: '[筋トレ: 15回 / 3セット]' },
+        { date: addDays(today, -1), category: 'STUDY', item: '情報', minutes: 35, precision: 'approx', memo: '後から概算で記録' }
+      ].map(x => ({
+        id: genId('demo_a'),
+        startTime: '',
+        isDemo: true,
+        createdAt: new Date().toISOString(),
+        ...x
+      }));
+
+      const demoWeights = [
+        { date: addDays(today, -6), weightKg: 85.4 },
+        { date: addDays(today, -4), weightKg: 85.1 },
+        { date: addDays(today, -2), weightKg: 84.9 },
+        { date: addDays(today, -1), weightKg: 84.8 }
+      ].map(w => ({
+        id: genId('demo_w'),
+        measuredAt: `${w.date}T07:30`,
+        bodyFatPct: null,
+        sleepHours: null,
+        note: '朝の測定',
+        isDemo: true,
+        createdAt: new Date().toISOString(),
+        ...w
+      }));
+
+      appData.activities.push(...demoActs);
+      appData.weights.push(...demoWeights);
+      persistData();
+      renderView();
+      showToast('DEMO用サンプルデータを読み込みました（バッジで区別表示）');
+    }
+
+    function copyAISummaryPrompt() {
+      const today = toLocalDateStr();
+      const start = addDays(today, -6);
+      const acts = appData.activities.filter(a => a.date >= start && a.date <= today && a.precision !== 'unconfirmed');
+      const wLatest = getLatestWeightInfo();
+      const summary = [
+        `【LIFELOG 直近7日間サマリー (${start} 〜 ${today})】`,
+        `現在体重: ${wLatest.weightKg}kg (目標: ${appData.settings.targetWeightKg}kg)`,
+        `記録件数: ${acts.length}件`,
+        ...acts.map(a => `- ${a.date} [${CATEGORY_META[a.category]?.jp}] ${a.item} ${a.minutes}分 (${PRECISION_META[a.precision]?.label}) ${a.memo || ''}`),
+        `\nこの記録をもとに、良い点・勉強と運動のバランス・無理のない来週の目標を提案してください。`
+      ].join('\n');
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(summary).then(() => {
+          showToast('AI相談用サマリーをコピーしました');
+        }).catch(() => fallbackCopy(summary));
+      } else {
+        fallbackCopy(summary);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('AI相談用サマリーをコピーしました');
+      } catch (e) {
+        showToast('コピーに失敗しました', 'error');
+      }
+      ta.remove();
+    }
+
+    // Future AI Adapter Hook (Unconnected by default)
+    window.LIFELOG_AI_ADAPTER = {
+      connected: false,
+      provider: null,
+      capabilities: ['weekly_review', 'monthly_review', 'balance_analysis', 'weight_explanation', 'habit_suggestions', 'next_week_goal', 'natural_language_logging']
+    };
+
+    // ==========================================
+    // 15. INITIALIZATION
+    // ==========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      applyTheme();
+      updateDemoBadge();
+      if (timerState.status === 'running' || timerState.status === 'paused') {
+        startTimerLoop();
+      }
+      switchTab('home');
+    });
+  </script>
+</body>
+</html>
